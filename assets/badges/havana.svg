@@ -1,0 +1,13 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Brain outline representing neurological effects -->
+  <path d="M12 3C15.5 3 18 5.5 18 9C18 10.5 17.5 11.8 16.7 12.8C17.5 13.5 18 14.5 18 15.5C18 17.4 16.4 19 14.5 19H9.5C7.6 19 6 17.4 6 15.5C6 14.5 6.5 13.5 7.3 12.8C6.5 11.8 6 10.5 6 9C6 5.5 8.5 3 12 3Z" stroke="#FF6B6B" stroke-width="2" fill="none"/>
+  
+  <!-- Wave patterns representing sonic/electromagnetic effects -->
+  <path d="M3 8C3.5 8.5 4 9 4.5 9.5" stroke="#FF6B6B" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M3 12C3.5 12.5 4 13 4.5 13.5" stroke="#FF6B6B" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M21 8C20.5 8.5 20 9 19.5 9.5" stroke="#FF6B6B" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M21 12C20.5 12.5 20 13 19.5 13.5" stroke="#FF6B6B" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- Central neural activity indicator -->
+  <circle cx="12" cy="10" r="1.5" fill="#FF6B6B"/>
+</svg> 

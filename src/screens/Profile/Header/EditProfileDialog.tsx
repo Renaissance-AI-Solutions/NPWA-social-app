@@ -24,6 +24,8 @@ import {InlineLinkText} from '#/components/Link'
 import {Loader} from '#/components/Loader'
 import * as Prompt from '#/components/Prompt'
 import {useSimpleVerificationState} from '#/components/verification'
+import {BadgeSelector} from '#/components/BadgeSelector'
+import {type VictimBadge} from '#/components/AvatarBadge'
 
 const DISPLAY_NAME_MAX_GRAPHEMES = 64
 const DESCRIPTION_MAX_GRAPHEMES = 256
@@ -132,12 +134,17 @@ function DialogInner({
   const [newUserAvatar, setNewUserAvatar] = useState<
     ImageMeta | undefined | null
   >()
+  
+  // Badge state
+  const initialBadges: VictimBadge[] = (profile as any).badges || []
+  const [badges, setBadges] = useState<VictimBadge[]>(initialBadges)
 
   const dirty =
     displayName !== initialDisplayName ||
     description !== initialDescription ||
     userAvatar !== profile.avatar ||
-    userBanner !== profile.banner
+    userBanner !== profile.banner ||
+    JSON.stringify(badges) !== JSON.stringify(initialBadges)
 
   useEffect(() => {
     setDirty(dirty)
@@ -187,10 +194,19 @@ function DialogInner({
         updates: {
           displayName: displayName.trimEnd(),
           description: description.trimEnd(),
+          // TODO: Include badges once AT Protocol schema is updated
+          // badges: badges,
         },
         newUserAvatar,
         newUserBanner,
       })
+      
+      // Temporarily store badges in local state until backend integration
+      if (JSON.stringify(badges) !== JSON.stringify(initialBadges)) {
+        // @ts-ignore - Temporary until proper integration
+        profile.badges = badges
+      }
+      
       onUpdate?.()
       control.close()
       Toast.show(_(msg({message: 'Profile updated', context: 'toast'})))
@@ -208,6 +224,8 @@ function DialogInner({
     newUserBanner,
     setImageError,
     _,
+    badges,
+    initialBadges,
   ])
 
   const displayNameTooLong = useWarnMaxGraphemeCount({
@@ -397,6 +415,13 @@ function DialogInner({
             </TextField.SuffixText>
           )}
         </View>
+
+        {/* Badge selector */}
+        <BadgeSelector
+          badges={badges}
+          onBadgesChange={setBadges}
+          maxBadges={3}
+        />
       </View>
     </Dialog.ScrollableInner>
   )

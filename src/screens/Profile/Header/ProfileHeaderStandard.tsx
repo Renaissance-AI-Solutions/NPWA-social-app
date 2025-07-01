@@ -36,6 +36,7 @@ import * as Prompt from '#/components/Prompt'
 import {RichText} from '#/components/RichText'
 import {Text} from '#/components/Typography'
 import {VerificationCheckButton} from '#/components/verification/VerificationCheckButton'
+import {AvatarBadge, type VictimBadge} from '#/components/AvatarBadge'
 import {EditProfileDialog} from './EditProfileDialog'
 import {ProfileHeaderHandle} from './Handle'
 import {ProfileHeaderMetrics} from './Metrics'
@@ -140,6 +141,12 @@ let ProfileHeaderStandard = ({
   )
 
   const {isActive: live} = useActorStatus(profile)
+
+  // Extract badges from profile (temporary mock data until backend integration)
+  const profileBadges: VictimBadge[] = React.useMemo(() => {
+    // @ts-ignore - This will be replaced with actual profile.badges once AT Protocol is updated
+    return profile.badges || []
+  }, [profile])
 
   return (
     <ProfileHeaderShell
@@ -259,6 +266,18 @@ let ProfileHeaderStandard = ({
             </Text>
           </View>
           <ProfileHeaderHandle profile={profile} />
+          
+          {/* Display victim badges if present */}
+          {profileBadges.length > 0 && (
+            <View style={[a.pt_xs]}>
+              <AvatarBadge 
+                badges={profileBadges} 
+                size="medium" 
+                showLabels={false} 
+                maxDisplay={3} 
+              />
+            </View>
+          )}
         </View>
         {!isPlaceholderProfile && !isBlockedUser && (
           <View style={a.gap_md}>

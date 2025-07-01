@@ -1,0 +1,19 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Multiple eyes representing surveillance -->
+  <ellipse cx="8" cy="8" rx="3.5" ry="2.5" stroke="#9C27B0" stroke-width="1.5" fill="none"/>
+  <ellipse cx="16" cy="8" rx="3.5" ry="2.5" stroke="#9C27B0" stroke-width="1.5" fill="none"/>
+  <ellipse cx="12" cy="16" rx="3.5" ry="2.5" stroke="#9C27B0" stroke-width="1.5" fill="none"/>
+  
+  <!-- Eye pupils -->
+  <circle cx="8" cy="8" r="1" fill="#9C27B0"/>
+  <circle cx="16" cy="8" r="1" fill="#9C27B0"/>
+  <circle cx="12" cy="16" r="1" fill="#9C27B0"/>
+  
+  <!-- Connecting surveillance network lines -->
+  <path d="M8 8L12 16" stroke="#9C27B0" stroke-width="1" opacity="0.6"/>
+  <path d="M16 8L12 16" stroke="#9C27B0" stroke-width="1" opacity="0.6"/>
+  <path d="M8 8L16 8" stroke="#9C27B0" stroke-width="1" opacity="0.6"/>
+  
+  <!-- Outer surveillance perimeter -->
+  <circle cx="12" cy="12" r="10" stroke="#9C27B0" stroke-width="1" opacity="0.3" fill="none"/>
+</svg> 
