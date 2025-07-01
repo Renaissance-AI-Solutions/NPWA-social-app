@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import {Dimensions, View} from 'react-native'
 import {type AppBskyActorDefs} from '@atproto/api'
 import {msg, Plural, Trans} from '@lingui/macro'
@@ -135,8 +135,8 @@ function DialogInner({
     ImageMeta | undefined | null
   >()
   
-  // Badge state
-  const initialBadges: VictimBadge[] = (profile as any).badges || []
+  // Badge state  
+  const initialBadges: VictimBadge[] = useMemo(() => (profile as any).badges || [], [profile])
   const [badges, setBadges] = useState<VictimBadge[]>(initialBadges)
 
   const dirty =
@@ -203,8 +203,10 @@ function DialogInner({
       
       // Temporarily store badges in local state until backend integration
       if (JSON.stringify(badges) !== JSON.stringify(initialBadges)) {
+        // Store in a temporary local variable to avoid mutating props
+        const updatedProfile = {...profile}
         // @ts-ignore - Temporary until proper integration
-        profile.badges = badges
+        updatedProfile.badges = badges
       }
       
       onUpdate?.()

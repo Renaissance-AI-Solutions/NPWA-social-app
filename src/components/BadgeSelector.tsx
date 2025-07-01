@@ -58,7 +58,7 @@ export function BadgeSelector({badges, onBadgesChange, maxBadges = 5}: Props) {
     onBadgesChange(badges.filter(b => b.badgeType !== badgeType))
   }
 
-  const handleUploadEvidence = (badgeType: BadgeType) => {
+  const handleUploadEvidence = (_badgeType: BadgeType) => {
     // TODO: Implement evidence upload functionality
     Alert.alert(
       _(msg`Evidence Upload`),
