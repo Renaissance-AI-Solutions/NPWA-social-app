@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   View,
-  ScrollView,
   TextInput,
   Alert,
   Linking,
   RefreshControl,
 } from 'react-native'
-import {useSafeAreaInsets} from 'react-native-safe-area-context'
+
 import {msg, Trans} from '@lingui/macro'
 import {useLingui} from '@lingui/react'
 import {useRoute, type RouteProp} from '@react-navigation/native'
@@ -15,6 +14,7 @@ import {useRoute, type RouteProp} from '@react-navigation/native'
 import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText, ButtonIcon} from '#/components/Button'
 import {Text} from '#/components/Typography'
+import * as Layout from '#/components/Layout'
 import {PressableScale} from '#/lib/custom-animations/PressableScale'
 import {
   ChevronTop_Stroke2_Corner0_Rounded as ArrowUp,
@@ -58,8 +58,9 @@ export function SourceDetail() {
   const { id: sourceId } = route.params
   const {_} = useLingui()
   const t = useTheme()
-  const insets = useSafeAreaInsets()
+
   const sourcesAPI = useSourcesAPI()
+  const { getById, getComments, vote, addComment } = sourcesAPI
 
   const [source, setSource] = useState<Source | null>(null)
   const [comments, setComments] = useState<SourceComment[]>([])
@@ -74,10 +75,10 @@ export function SourceDetail() {
     try {
       setLoading(true)
       const [sourceData, commentsData] = await Promise.all([
-        sourcesAPI.getById(sourceId),
-        sourcesAPI.getComments(sourceId),
+        getById(sourceId),
+        getComments(sourceId),
       ])
-      
+
       setSource(sourceData)
       setComments(commentsData)
     } catch (error) {
@@ -87,7 +88,7 @@ export function SourceDetail() {
       setLoading(false)
       setIsRefreshing(false)
     }
-  }, [sourcesAPI, sourceId, _])
+  }, [getById, getComments, sourceId])
 
   useEffect(() => {
     fetchSourceDetail()
@@ -103,7 +104,7 @@ export function SourceDetail() {
 
     try {
       setIsVoting(true)
-      const response = await sourcesAPI.vote({
+      const response = await vote({
         sourceId: source.id,
         vote: voteType,
       })
@@ -116,14 +117,14 @@ export function SourceDetail() {
     } finally {
       setIsVoting(false)
     }
-  }, [source, sourcesAPI, isVoting, _])
+  }, [source, vote, isVoting])
 
   const handleAddComment = useCallback(async () => {
     if (!newComment.trim() || !source || isAddingComment) return
 
     try {
       setIsAddingComment(true)
-      const newCommentObj = await sourcesAPI.addComment({
+      const newCommentObj = await addComment({
         sourceId: source.id,
         content: newComment.trim(),
       })
@@ -136,7 +137,7 @@ export function SourceDetail() {
     } finally {
       setIsAddingComment(false)
     }
-  }, [newComment, source, sourcesAPI, isAddingComment, _])
+  }, [newComment, source, addComment, isAddingComment])
 
   const handleOpenUrl = useCallback(() => {
     if (source?.url) {
@@ -144,7 +145,7 @@ export function SourceDetail() {
         Alert.alert(_(msg`Error`), _(msg`Unable to open URL`))
       })
     }
-  }, [source?.url, _])
+  }, [source?.url])
 
   const rankColors = getRankColors(t)
   const badgeColors = getBadgeColors(t)
@@ -157,54 +158,50 @@ export function SourceDetail() {
     return badgeType ? badgeColors[badgeType] : t.palette.contrast_400
   }
 
-  if (loading) {
-    return (
-      <View style={[a.flex_1, a.justify_center, a.align_center, {backgroundColor: t.atoms.bg.backgroundColor}]}>
-        <Text style={[a.text_lg, {color: t.atoms.text.color}]}>
-          <Trans>Loading...</Trans>
-        </Text>
-      </View>
-    )
-  }
-
-  if (!source) {
-    return (
-      <View style={[a.flex_1, a.justify_center, a.align_center, {backgroundColor: t.atoms.bg.backgroundColor}]}>
-        <Text style={[a.text_lg, {color: t.atoms.text.color}]}>
-          <Trans>Source not found</Trans>
-        </Text>
-      </View>
-    )
-  }
-
   return (
-    <ScrollView 
-      style={[a.flex_1, {backgroundColor: t.atoms.bg.backgroundColor}]}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          tintColor={t.atoms.text_contrast_medium.color}
-        />
-      }>
-      
-      {/* Header */}
-      <View
-        style={[
-          a.p_lg,
-          a.border_b,
-          {
-            borderBottomColor: t.atoms.border_contrast_low.borderColor,
-            paddingTop: insets.top + 12,
-          },
-        ]}>
-        
-        <Text 
-          style={[a.text_2xl, a.font_bold, a.mb_md, {color: t.atoms.text.color}]}
-          accessibilityRole="header"
-          accessibilityLevel={1}>
-          {source.name}
-        </Text>
+    <Layout.Screen testID="SourceDetailScreen">
+      <Layout.Header.Outer>
+        <Layout.Header.BackButton />
+        <Layout.Header.Content>
+          <Layout.Header.TitleText>
+            {loading ? <Trans>Loading...</Trans> : !source ? <Trans>Source Not Found</Trans> : source.name}
+          </Layout.Header.TitleText>
+        </Layout.Header.Content>
+        <Layout.Header.Slot />
+      </Layout.Header.Outer>
+
+      <Layout.Content
+        refreshControl={
+          !loading ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={t.atoms.text_contrast_medium.color}
+            />
+          ) : undefined
+        }>
+
+        {loading ? (
+          <View style={[a.flex_1, a.justify_center, a.align_center]}>
+            <Text style={[a.text_lg, {color: t.atoms.text.color}]}>
+              <Trans>Loading...</Trans>
+            </Text>
+          </View>
+        ) : !source ? (
+          <View style={[a.flex_1, a.justify_center, a.align_center]}>
+            <Text style={[a.text_lg, {color: t.atoms.text.color}]}>
+              <Trans>Source not found</Trans>
+            </Text>
+          </View>
+        ) : (
+          <>
+        {/* Source Info Section */}
+        <View style={[a.p_lg, a.border_b, {borderBottomColor: t.atoms.border_contrast_low.borderColor}]}>
+          <Text
+            style={[a.text_2xl, a.font_bold, a.mb_md, {color: t.atoms.text.color}]}
+            accessibilityRole="header">
+            {source.name}
+          </Text>
         
         <View style={[a.flex_row, a.align_center, a.mb_md, a.gap_sm]}>
           {/* Rank Badge */}
@@ -265,7 +262,7 @@ export function SourceDetail() {
         <View style={[a.flex_row, a.justify_center, a.mb_md, a.gap_md]}>
           <Button
             variant={userVote === 'up' ? 'solid' : 'outline'}
-            color={userVote === 'up' ? 'positive' : 'primary'}
+            color={userVote === 'up' ? 'primary' : 'primary'}
             size="small"
             onPress={() => handleVote('up')}
             disabled={isVoting}
@@ -277,7 +274,7 @@ export function SourceDetail() {
 
           <Button
             variant={userVote === 'down' ? 'solid' : 'outline'}
-            color={userVote === 'down' ? 'negative' : 'primary'}
+            color={userVote === 'down' ? 'primary' : 'primary'}
             size="small"
             onPress={() => handleVote('down')}
             disabled={isVoting}
@@ -294,10 +291,9 @@ export function SourceDetail() {
       </View>
 
       <View style={[a.p_lg]}>
-        <Text 
+        <Text
           style={[a.text_xl, a.font_bold, a.mb_lg, {color: t.atoms.text.color}]}
-          accessibilityRole="header"
-          accessibilityLevel={2}>
+          accessibilityRole="header">
           <Trans>Comments ({comments.length})</Trans>
         </Text>
         
@@ -351,7 +347,7 @@ export function SourceDetail() {
             ]}>
             <View style={[a.flex_row, a.justify_between, a.align_center, a.mb_sm]}>
               <Text style={[a.text_sm, a.font_bold, {color: t.atoms.text.color}]}>
-                {comment.author}
+                {comment.author.displayName || comment.author.handle}
               </Text>
               <Text style={[a.text_xs, {color: t.atoms.text_contrast_medium.color}]}>
                 {new Date(comment.createdAt).toLocaleDateString()}
@@ -375,7 +371,10 @@ export function SourceDetail() {
           </Text>
         )}
       </View>
-    </ScrollView>
+          </>
+        )}
+      </Layout.Content>
+    </Layout.Screen>
   )
 }
 
