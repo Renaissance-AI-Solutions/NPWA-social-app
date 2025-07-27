@@ -21,6 +21,7 @@ import {type Gif} from '#/state/queries/tenor'
 import {threadgateRecordToAllowUISetting} from '#/state/queries/threadgate'
 import {type ThreadgateAllowUISetting} from '#/state/queries/threadgate'
 import {type ComposerOpts} from '#/state/shell/composer'
+import {type Source} from '#/components/SourcePicker'
 import {
   type LinkFacetMatch,
   suggestLinkCardUri,
@@ -69,6 +70,7 @@ export type PostDraft = {
   labels: SelfLabel[]
   embed: EmbedDraft
   shortenedGraphemeLength: number
+  sources: Source[]
 }
 
 export type PostAction =
@@ -90,6 +92,9 @@ export type PostAction =
   | {type: 'embed_add_gif'; gif: Gif}
   | {type: 'embed_update_gif'; alt: string}
   | {type: 'embed_remove_gif'}
+  | {type: 'sources_update'; sources: Source[]}
+  | {type: 'sources_add'; source: Source}
+  | {type: 'sources_remove'; sourceId: string}
 
 export type ThreadDraft = {
   posts: PostDraft[]
@@ -181,6 +186,7 @@ export function composerReducer(
           media: undefined,
           link: undefined,
         },
+        sources: [],
       })
       return {
         ...state,
@@ -479,6 +485,24 @@ function postReducer(state: PostDraft, action: PostAction): PostDraft {
         },
       }
     }
+    case 'sources_update': {
+      return {
+        ...state,
+        sources: action.sources,
+      }
+    }
+    case 'sources_add': {
+      return {
+        ...state,
+        sources: [...state.sources, action.source],
+      }
+    }
+    case 'sources_remove': {
+      return {
+        ...state,
+        sources: state.sources.filter(s => s.id !== action.sourceId),
+      }
+    }
   }
 }
 
@@ -603,6 +627,7 @@ export function createComposerState({
             media,
             link,
           },
+          sources: [],
         },
       ],
       postgate: createPostgateRecord({

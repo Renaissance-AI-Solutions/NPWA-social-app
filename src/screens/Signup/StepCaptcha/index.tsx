@@ -36,6 +36,18 @@ export function StepCaptcha() {
     return newUrl.href
   }, [state.serviceUrl, state.handle, state.userDomain, stateParam, theme.name])
 
+  // Auto-complete CAPTCHA for localhost development
+  React.useEffect(() => {
+    if (window.location.hostname === 'localhost' && !completed) {
+      setCompleted(true)
+      logger.metric('signup:captchaSuccess', {}, {statsig: true})
+      dispatch({
+        type: 'submit',
+        task: {verificationCode: 'dev-bypass', mutableProcessed: false},
+      })
+    }
+  }, [dispatch, completed])
+
   const onSuccess = React.useCallback(
     (code: string) => {
       setCompleted(true)
@@ -72,6 +84,32 @@ export function StepCaptcha() {
 
     dispatch({type: 'prev'})
   }, [dispatch, state.handle])
+
+  // For localhost, show loading indicator and auto-proceed
+  if (window.location.hostname === 'localhost') {
+    return (
+      <ScreenTransition>
+        <View style={[a.gap_lg]}>
+          <View
+            style={[
+              a.w_full,
+              a.overflow_hidden,
+              {minHeight: 510},
+              a.align_center,
+              a.justify_center,
+            ]}>
+            <ActivityIndicator size="large" />
+          </View>
+          <FormError error={state.error} />
+        </View>
+        <BackNextButtons
+          hideNext
+          isLoading={state.isLoading}
+          onBackPress={onBackPress}
+        />
+      </ScreenTransition>
+    )
+  }
 
   return (
     <ScreenTransition>

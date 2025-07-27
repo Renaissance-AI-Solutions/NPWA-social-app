@@ -36,7 +36,7 @@
     "build-embed": "cd bskyembed && yarn build && yarn build-snippet && cd .. && node ./scripts/post-embed-build.js",
     "start": "expo start --dev-client",
     "start:prod": "expo start --dev-client --no-dev --minify",
-    "test": "NODE_ENV=test jest --forceExit --testTimeout=20000 --bail",
+    "test": "cross-env NODE_ENV=test jest --forceExit --testTimeout=20000 --bail",
     "test-watch": "NODE_ENV=test jest --watchAll",
     "test-ci": "NODE_ENV=test jest --ci --forceExit --reporters=default --reporters=jest-junit",
     "test-coverage": "NODE_ENV=test jest --coverage",
@@ -98,7 +98,7 @@
     "@react-navigation/drawer": "^7.3.12",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/native-stack": "^7.3.13",
-    "@sentry/react-native": "~6.14.0",
+    "@sentry/react-native": "^6.17.0",
     "@tanstack/query-async-storage-persister": "^5.25.0",
     "@tanstack/react-query": "^5.8.1",
     "@tanstack/react-query-persist-client": "^5.25.0",
@@ -248,6 +248,7 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-react-compiler": "^19.1.0-rc.1",
     "babel-preset-expo": "~13.1.11",
+    "cross-env": "^7.0.3",
     "eslint": "^8.19.0",
     "eslint-plugin-bsky-internal": "link:./eslint",
     "eslint-plugin-ft-flow": "^2.0.3",
@@ -318,7 +319,8 @@
     "reporters": [
       "default",
       "jest-junit"
-    ]
+    ],
+    "prettierPath": null
   },
   "browserslist": {
     "production": [

@@ -87,6 +87,7 @@ export type BottomTabNavigatorParams = CommonNavigatorParams & {
   SearchTab: undefined
   NotificationsTab: undefined
   MyProfileTab: undefined
+  JournalTab: undefined
   MessagesTab: undefined
 }
 
@@ -110,11 +111,18 @@ export type MessagesTabNavigatorParams = CommonNavigatorParams & {
   Messages: {pushToConversation?: string; animation?: 'push' | 'pop'}
 }
 
+export type JournalTabNavigatorParams = CommonNavigatorParams & {
+  JournalList: undefined
+  JournalComposer: undefined
+}
+
 export type FlatNavigatorParams = CommonNavigatorParams & {
   Home: undefined
   Search: {q?: string}
   Feeds: undefined
   Notifications: undefined
+  JournalList: undefined
+  JournalComposer: undefined
   Messages: {pushToConversation?: string; animation?: 'push' | 'pop'}
 }
 
@@ -127,6 +135,9 @@ export type AllNavigatorParams = CommonNavigatorParams & {
   NotificationsTab: undefined
   Notifications: undefined
   MyProfileTab: undefined
+  JournalTab: undefined
+  JournalList: undefined
+  JournalComposer: undefined
   MessagesTab: undefined
   Messages: {animation?: 'push' | 'pop'}
 }

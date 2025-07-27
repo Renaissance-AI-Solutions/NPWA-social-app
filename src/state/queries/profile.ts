@@ -177,7 +177,12 @@ export function useProfileUpdateMutation() {
           if ('pinnedPost' in updates) {
             next.pinnedPost = updates.pinnedPost
           }
+          if ('badges' in updates) {
+            console.log('DEBUG: Setting badges in profile update:', updates.badges)
+            next.badges = updates.badges
+          }
         }
+        console.log('DEBUG: Final profile record to be sent:', next)
         if (newUserAvatarPromise) {
           const res = await newUserAvatarPromise
           next.avatar = res.data.blob

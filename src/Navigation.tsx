@@ -23,6 +23,7 @@ import {
   type BottomTabNavigatorParams,
   type FlatNavigatorParams,
   type HomeTabNavigatorParams,
+  type JournalTabNavigatorParams,
   type MessagesTabNavigatorParams,
   type MyProfileTabNavigatorParams,
   type NotificationsTabNavigatorParams,
@@ -102,6 +103,8 @@ import {
 import {Wizard} from '#/screens/StarterPack/Wizard'
 import TopicScreen from '#/screens/Topic'
 import {VideoFeed} from '#/screens/VideoFeed'
+import {JournalList} from '#/screens/Journal/List'
+import {JournalComposer} from '#/screens/Journal/Composer'
 import {type Theme, useTheme} from '#/alf'
 import {
   EmailDialogScreenID,
@@ -129,6 +132,8 @@ const NotificationsTab =
   createNativeStackNavigatorWithAuth<NotificationsTabNavigatorParams>()
 const MyProfileTab =
   createNativeStackNavigatorWithAuth<MyProfileTabNavigatorParams>()
+const JournalTab =
+  createNativeStackNavigatorWithAuth<JournalTabNavigatorParams>()
 const MessagesTab =
   createNativeStackNavigatorWithAuth<MessagesTabNavigatorParams>()
 const Flat = createNativeStackNavigatorWithAuth<FlatNavigatorParams>()
@@ -587,6 +592,10 @@ function TabsNavigator() {
       <Tab.Screen name="HomeTab" getComponent={() => HomeTabNavigator} />
       <Tab.Screen name="SearchTab" getComponent={() => SearchTabNavigator} />
       <Tab.Screen
+        name="JournalTab"
+        getComponent={() => JournalTabNavigator}
+      />
+      <Tab.Screen
         name="MessagesTab"
         getComponent={() => MessagesTabNavigator}
       />
@@ -668,6 +677,33 @@ function MyProfileTabNavigator() {
   )
 }
 
+function JournalTabNavigator() {
+  const t = useTheme()
+  
+  const handleCreateEntry = () => {
+    // Navigate to JournalComposer
+    navigationRef.current?.navigate('JournalComposer')
+  }
+  
+  return (
+    <JournalTab.Navigator
+      screenOptions={screenOptions(t)}
+      initialRouteName="JournalList">
+      <JournalTab.Screen
+        name="JournalList"
+        component={() => <JournalList onCreateEntry={handleCreateEntry} />}
+        options={{requireAuth: true}}
+      />
+      <JournalTab.Screen
+        name="JournalComposer"
+        getComponent={() => JournalComposer}
+        options={{requireAuth: true}}
+      />
+      {commonScreens(JournalTab as unknown as typeof Flat)}
+    </JournalTab.Navigator>
+  )
+}
+
 function MessagesTabNavigator() {
   const t = useTheme()
   return (
@@ -720,6 +756,20 @@ const FlatNavigator = () => {
         name="Messages"
         getComponent={() => MessagesScreen}
         options={{title: title(msg`Messages`), requireAuth: true}}
+      />
+      <Flat.Screen
+        name="JournalList"
+        component={() => (
+          <JournalList
+            onCreateEntry={() => navigationRef.current?.navigate('JournalComposer')}
+          />
+        )}
+        options={{title: title(msg`Journal`), requireAuth: true}}
+      />
+      <Flat.Screen
+        name="JournalComposer"
+        getComponent={() => JournalComposer}
+        options={{title: title(msg`New Entry`), requireAuth: true}}
       />
       <Flat.Screen
         name="Start"
@@ -781,6 +831,12 @@ const LINKING = {
       }
       if (name === 'Messages') {
         return buildStateObject('MessagesTab', 'Messages', params)
+      }
+      if (name === 'JournalList') {
+        return buildStateObject('JournalTab', 'JournalList', params)
+      }
+      if (name === 'JournalComposer') {
+        return buildStateObject('JournalTab', 'JournalComposer', params)
       }
       // if the path is something else, like a post, profile, or even settings, we need to initialize the home tab as pre-existing state otherwise the back button will not work
       return buildStateObject('HomeTab', name, params, [
@@ -882,7 +938,7 @@ function navigate<K extends keyof AllNavigatorParams>(
   return Promise.resolve()
 }
 
-function resetToTab(tabName: 'HomeTab' | 'SearchTab' | 'NotificationsTab') {
+function resetToTab(tabName: 'HomeTab' | 'SearchTab' | 'NotificationsTab' | 'JournalTab') {
   if (navigationRef.isReady()) {
     navigate(tabName)
     if (navigationRef.canGoBack()) {
@@ -937,6 +993,12 @@ function handleLink(url: string) {
       resetToTab('SearchTab')
     } else if (name === 'Notifications') {
       resetToTab('NotificationsTab')
+    } else if (name === 'JournalList' || name === 'JournalComposer') {
+      resetToTab('JournalTab')
+      if (name !== 'JournalList') {
+        // @ts-ignore matchPath doesnt give us type-checked output -prf
+        navigate(name, params)
+      }
     } else {
       resetToTab('HomeTab')
       // @ts-ignore matchPath doesnt give us type-checked output -prf

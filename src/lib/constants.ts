@@ -1,17 +1,18 @@
 import {type Insets, Platform} from 'react-native'
 import {type AppBskyActorDefs} from '@atproto/api'
 
+// AT Protocol Development Environment Configuration
 export const LOCAL_DEV_SERVICE =
   Platform.OS === 'android' ? 'http://10.0.2.2:2583' : 'http://localhost:2583'
 export const STAGING_SERVICE = 'https://staging.bsky.dev'
 export const BSKY_SERVICE = 'https://bsky.social'
-export const PUBLIC_BSKY_SERVICE = 'https://public.api.bsky.app'
-export const DEFAULT_SERVICE = BSKY_SERVICE
+export const PUBLIC_BSKY_SERVICE = Platform.OS === 'android' ? 'http://10.0.2.2:2584' : 'http://localhost:2584'
+export const DEFAULT_SERVICE = LOCAL_DEV_SERVICE
 const HELP_DESK_LANG = 'en-us'
 export const HELP_DESK_URL = `https://blueskyweb.zendesk.com/hc/${HELP_DESK_LANG}`
-export const EMBED_SERVICE = 'https://embed.bsky.app'
+export const EMBED_SERVICE = Platform.OS === 'android' ? 'http://10.0.2.2:2584' : 'http://localhost:2584'
 export const EMBED_SCRIPT = `${EMBED_SERVICE}/static/embed.js`
-export const BSKY_DOWNLOAD_URL = 'https://bsky.app/download'
+export const BSKY_DOWNLOAD_URL = Platform.OS === 'android' ? 'http://10.0.2.2:2584/download' : 'http://localhost:2584/download'
 export const STARTER_PACK_MAX_SIZE = 150
 
 // HACK
@@ -100,7 +101,8 @@ export const POST_IMG_MAX = {
 export const STAGING_LINK_META_PROXY =
   'https://cardyb.staging.bsky.dev/v1/extract?url='
 
-export const PROD_LINK_META_PROXY = 'https://cardyb.bsky.app/v1/extract?url='
+// Use local AppView for link meta proxy in development
+export const PROD_LINK_META_PROXY = Platform.OS === 'android' ? 'http://10.0.2.2:2584/v1/extract?url=' : 'http://localhost:2584/v1/extract?url='
 
 export function LINK_META_PROXY(serviceUrl: string) {
   if (IS_PROD_SERVICE(serviceUrl)) {
@@ -110,7 +112,8 @@ export function LINK_META_PROXY(serviceUrl: string) {
   return STAGING_LINK_META_PROXY
 }
 
-export const STATUS_PAGE_URL = 'https://status.bsky.app/'
+// Use local status page for development
+export const STATUS_PAGE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:2584/status' : 'http://localhost:2584/status'
 
 // Hitslop constants
 export const createHitslop = (size: number): Insets => ({
@@ -135,49 +138,60 @@ export const BSKY_FEED_OWNER_DIDS = [
   'did:plc:q6gjnaw2blty4crticxkmujt',
 ]
 
-export const DISCOVER_FEED_URI =
-  'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.generator/whats-hot'
-export const VIDEO_FEED_URI =
-  'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.generator/thevids'
-export const STAGING_VIDEO_FEED_URI =
-  'at://did:plc:yofh3kx63drvfljkibw5zuxo/app.bsky.feed.generator/thevids'
-export const VIDEO_FEED_URIS = [VIDEO_FEED_URI, STAGING_VIDEO_FEED_URI]
-export const DISCOVER_SAVED_FEED = {
-  type: 'feed',
-  value: DISCOVER_FEED_URI,
-  pinned: true,
-}
+// Disabled external feeds for local development
+// export const DISCOVER_FEED_URI =
+//   'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.generator/whats-hot'
+// export const VIDEO_FEED_URI =
+//   'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.generator/thevids'
+// export const STAGING_VIDEO_FEED_URI =
+//   'at://did:plc:yofh3kx63drvfljkibw5zuxo/app.bsky.feed.generator/thevids'
+// export const VIDEO_FEED_URIS = [VIDEO_FEED_URI, STAGING_VIDEO_FEED_URI]
+
+// Provide empty array for local development to avoid undefined errors
+export const VIDEO_FEED_URIS: string[] = []
+
+// Use only local timeline feed for now
 export const TIMELINE_SAVED_FEED = {
   type: 'timeline',
   value: 'following',
   pinned: true,
 }
-export const VIDEO_SAVED_FEED = {
-  type: 'feed',
-  value: VIDEO_FEED_URI,
-  pinned: true,
-}
+
+// Disable external feeds for local development
+// export const DISCOVER_SAVED_FEED = {
+//   type: 'feed',
+//   value: DISCOVER_FEED_URI,
+//   pinned: true,
+// }
+// export const VIDEO_SAVED_FEED = {
+//   type: 'feed',
+//   value: VIDEO_FEED_URI,
+//   pinned: true,
+// }
 
 export const RECOMMENDED_SAVED_FEEDS: Pick<
   AppBskyActorDefs.SavedFeed,
   'type' | 'value' | 'pinned'
->[] = [DISCOVER_SAVED_FEED, TIMELINE_SAVED_FEED]
+>[] = [TIMELINE_SAVED_FEED] // Only use timeline feed for local development
 
 export const KNOWN_SHUTDOWN_FEEDS = [
   'at://did:plc:wqowuobffl66jv3kpsvo7ak4/app.bsky.feed.generator/the-algorithm', // for you by skygaze
 ]
 
-export const GIF_SERVICE = 'https://gifs.bsky.app'
+export const GIF_SERVICE = Platform.OS === 'android' ? 'http://10.0.2.2:2584' : 'http://localhost:2584'
 
 export const GIF_SEARCH = (params: string) =>
-  `${GIF_SERVICE}/tenor/v2/search?${params}`
+  `${GIF_SERVICE}/api/gifs/search?${params}`
 export const GIF_FEATURED = (params: string) =>
-  `${GIF_SERVICE}/tenor/v2/featured?${params}`
+  `${GIF_SERVICE}/api/gifs/featured?${params}`
 
 export const MAX_LABELERS = 20
 
-export const VIDEO_SERVICE = 'https://video.bsky.app'
-export const VIDEO_SERVICE_DID = 'did:web:video.bsky.app'
+export const VIDEO_SERVICE = Platform.OS === 'android' ? 'http://10.0.2.2:2584' : 'http://localhost:2584'
+export const VIDEO_SERVICE_DID = 'did:web:localhost:2584'
+//export const VIDEO_SERVICE = 'https://video.bsky.app'
+//export const VIDEO_SERVICE_DID = 'did:web:video.bsky.app'
+
 
 export const VIDEO_MAX_DURATION_MS = 3 * 60 * 1000 // 3 minutes in milliseconds
 export const VIDEO_MAX_SIZE = 1000 * 1000 * 100 // 100mb

@@ -193,7 +193,7 @@ export function ProfileFeedScreenInner({
   }, [_])
 
   const isVideoFeed = React.useMemo(() => {
-    const isBskyVideoFeed = VIDEO_FEED_URIS.includes(feedInfo.uri)
+    const isBskyVideoFeed = feedInfo.uri ? VIDEO_FEED_URIS.includes(feedInfo.uri) : false
     const feedIsVideoMode =
       feedInfo.contentMode === AppBskyFeedDefs.CONTENTMODEVIDEO
     const _isVideoFeed = isBskyVideoFeed || feedIsVideoMode

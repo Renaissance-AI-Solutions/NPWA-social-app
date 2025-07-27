@@ -188,26 +188,18 @@ function DialogInner({
 
   const onPressSave = useCallback(async () => {
     setImageError('')
+    console.log('DEBUG: Saving profile with badges:', badges)
     try {
       await updateProfileMutation({
         profile,
         updates: {
           displayName: displayName.trimEnd(),
           description: description.trimEnd(),
-          // TODO: Include badges once AT Protocol schema is updated
-          // badges: badges,
+          badges: badges,
         },
         newUserAvatar,
         newUserBanner,
       })
-      
-      // Temporarily store badges in local state until backend integration
-      if (JSON.stringify(badges) !== JSON.stringify(initialBadges)) {
-        // Store in a temporary local variable to avoid mutating props
-        const updatedProfile = {...profile}
-        // @ts-ignore - Temporary until proper integration
-        updatedProfile.badges = badges
-      }
       
       onUpdate?.()
       control.close()
@@ -227,7 +219,6 @@ function DialogInner({
     setImageError,
     _,
     badges,
-    initialBadges,
   ])
 
   const displayNameTooLong = useWarnMaxGraphemeCount({

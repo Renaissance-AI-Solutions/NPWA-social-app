@@ -147,6 +147,7 @@ import {
 } from './state/video'
 import {getVideoMetadata} from './videos/pickVideo'
 import {clearThumbnailCache} from './videos/VideoTranscodeBackdrop'
+import {SourcePicker, type Source} from '#/components/SourcePicker'
 
 type CancelRef = {
   onPressCancel: () => void
@@ -1280,76 +1281,115 @@ function ComposerFooter({
     [dispatch],
   )
 
+  const onSourcesChange = useCallback(
+    (sources: Source[]) => {
+      dispatch({
+        type: 'sources_update',
+        sources,
+      })
+    },
+    [dispatch],
+  )
+
+  const onInsertCitation = useCallback(
+    (sourceIndex: number) => {
+      // This would need to interact with the text input to insert [sourceIndex]
+      // For now, we'll just show a toast
+      console.log(`Insert citation [${sourceIndex}]`)
+    },
+    [],
+  )
+
   return (
-    <View
-      style={[
-        a.flex_row,
-        a.py_xs,
-        {paddingLeft: 7, paddingRight: 16},
-        a.align_center,
-        a.border_t,
-        t.atoms.bg,
-        t.atoms.border_contrast_medium,
-        a.justify_between,
-      ]}>
-      <View style={[a.flex_row, a.align_center]}>
-        <LayoutAnimationConfig skipEntering skipExiting>
-          {video && video.status !== 'done' ? (
-            <VideoUploadToolbar state={video} />
-          ) : (
-            <ToolbarWrapper style={[a.flex_row, a.align_center, a.gap_xs]}>
-              <SelectPhotoBtn
-                size={images.length}
-                disabled={media?.type === 'images' ? isMaxImages : !!media}
-                onAdd={onImageAdd}
+    <View>
+      {/* Sources Section */}
+      {post.sources && post.sources.length > 0 && (
+        <View style={[a.px_lg, a.py_md, a.border_b, {borderBottomColor: t.atoms.border_contrast_low.borderColor}]}>
+          <SourcePicker
+            selectedSources={post.sources}
+            onSourcesChange={onSourcesChange}
+            onInsertCitation={onInsertCitation}
+          />
+        </View>
+      )}
+      
+      {/* Main Footer */}
+      <View
+        style={[
+          a.flex_row,
+          a.py_xs,
+          {paddingLeft: 7, paddingRight: 16},
+          a.align_center,
+          a.border_t,
+          t.atoms.bg,
+          t.atoms.border_contrast_medium,
+          a.justify_between,
+        ]}>
+        <View style={[a.flex_row, a.align_center]}>
+          <LayoutAnimationConfig skipEntering skipExiting>
+            {video && video.status !== 'done' ? (
+              <VideoUploadToolbar state={video} />
+            ) : (
+              <ToolbarWrapper style={[a.flex_row, a.align_center, a.gap_xs]}>
+                <SelectPhotoBtn
+                  size={images.length}
+                  disabled={media?.type === 'images' ? isMaxImages : !!media}
+                  onAdd={onImageAdd}
+                />
+                <SelectVideoBtn
+                  onSelectVideo={asset => onSelectVideo(post.id, asset)}
+                  disabled={!!media}
+                  setError={onError}
+                />
+                <OpenCameraBtn
+                  disabled={media?.type === 'images' ? isMaxImages : !!media}
+                  onAdd={onImageAdd}
+                />
+                <SelectGifBtn onSelectGif={onSelectGif} disabled={!!media} />
+                {/* Source Picker Button */}
+                <SourcePicker
+                  selectedSources={post.sources || []}
+                  onSourcesChange={onSourcesChange}
+                  onInsertCitation={onInsertCitation}
+                />
+                {!isMobile ? (
+                  <Button
+                    onPress={onEmojiButtonPress}
+                    style={a.p_sm}
+                    label={_(msg`Open emoji picker`)}
+                    accessibilityHint={_(msg`Opens emoji picker`)}
+                    variant="ghost"
+                    shape="round"
+                    color="primary">
+                    <EmojiSmile size="lg" />
+                  </Button>
+                ) : null}
+              </ToolbarWrapper>
+            )}
+          </LayoutAnimationConfig>
+        </View>
+        <View style={[a.flex_row, a.align_center, a.justify_between]}>
+          {showAddButton && (
+            <Button
+              label={_(msg`Add new post`)}
+              onPress={onAddPost}
+              style={[a.p_sm, a.m_2xs]}
+              variant="ghost"
+              shape="round"
+              color="primary">
+              <FontAwesomeIcon
+                icon="add"
+                size={20}
+                color={t.palette.primary_500}
               />
-              <SelectVideoBtn
-                onSelectVideo={asset => onSelectVideo(post.id, asset)}
-                disabled={!!media}
-                setError={onError}
-              />
-              <OpenCameraBtn
-                disabled={media?.type === 'images' ? isMaxImages : !!media}
-                onAdd={onImageAdd}
-              />
-              <SelectGifBtn onSelectGif={onSelectGif} disabled={!!media} />
-              {!isMobile ? (
-                <Button
-                  onPress={onEmojiButtonPress}
-                  style={a.p_sm}
-                  label={_(msg`Open emoji picker`)}
-                  accessibilityHint={_(msg`Opens emoji picker`)}
-                  variant="ghost"
-                  shape="round"
-                  color="primary">
-                  <EmojiSmile size="lg" />
-                </Button>
-              ) : null}
-            </ToolbarWrapper>
+            </Button>
           )}
-        </LayoutAnimationConfig>
-      </View>
-      <View style={[a.flex_row, a.align_center, a.justify_between]}>
-        {showAddButton && (
-          <Button
-            label={_(msg`Add new post`)}
-            onPress={onAddPost}
-            style={[a.p_sm, a.m_2xs]}
-            variant="ghost"
-            shape="round"
-            color="primary">
-            <FontAwesomeIcon
-              icon="add"
-              size={20}
-              color={t.palette.primary_500}
-            />
-          </Button>
-        )}
-        <SelectLangBtn />
-        <CharProgress
-          count={post.shortenedGraphemeLength}
-          style={{width: 65}}
-        />
+          <SelectLangBtn />
+          <CharProgress
+            count={post.shortenedGraphemeLength}
+            style={{width: 65}}
+          />
+        </View>
       </View>
     </View>
   )

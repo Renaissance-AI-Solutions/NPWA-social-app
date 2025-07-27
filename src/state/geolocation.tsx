@@ -28,6 +28,15 @@ export const DEFAULT_GEOLOCATION: Device['geolocation'] = {
 }
 
 async function getGeolocation(): Promise<Device['geolocation']> {
+  // For local development, always return US as default country code
+  // In production, this would connect to your own geolocation service
+  if (__DEV__ || window.location.hostname === 'localhost') {
+    return {
+      countryCode: 'US', // Default to US for local development
+    }
+  }
+
+  // This would be your own geolocation service in production
   const res = await fetch(`https://bsky.app/ipcc`)
 
   if (!res.ok) {

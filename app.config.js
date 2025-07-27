@@ -12,6 +12,8 @@ module.exports = function (_config) {
    * @see https://docs.expo.dev/build-reference/variables/#built-in-environment-variables
    */
   const PLATFORM = process.env.EAS_BUILD_PLATFORM
+  // console.log('-----------------------------------------------------------------------------------------------------------------------------------------------------------------')
+  // console.log('PLATFORM', process.env)
 
   const IS_TESTFLIGHT = process.env.EXPO_PUBLIC_ENV === 'testflight'
   const IS_PRODUCTION = process.env.EXPO_PUBLIC_ENV === 'production'
@@ -203,8 +205,8 @@ module.exports = function (_config) {
         USE_SENTRY && [
           '@sentry/react-native/expo',
           {
-            organization: 'blueskyweb',
-            project: 'app',
+            organization: 'renaissance-ai-solutions-3q',
+            project: 'npwa-social-app',
             url: 'https://sentry.io',
           },
         ],

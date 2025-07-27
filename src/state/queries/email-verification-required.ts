@@ -8,6 +8,13 @@ export function useServiceConfigQuery() {
   return useQuery({
     queryKey: ['service-config'],
     queryFn: async () => {
+      // For local development, disable email confirmation requirement
+      if (window.location.hostname === 'localhost') {
+        return {
+          checkEmailConfirmed: false,
+        }
+      }
+
       const res = await fetch(
         'https://api.bsky.app/xrpc/app.bsky.unspecced.getConfig',
       )

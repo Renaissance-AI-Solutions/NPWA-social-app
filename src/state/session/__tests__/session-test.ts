@@ -14,17 +14,17 @@ describe('session', () => {
   it('can log in and out', () => {
     let state = getInitialState([])
     expect(printState(state)).toMatchInlineSnapshot(`
-      {
-        "accounts": [],
-        "currentAgentState": {
-          "agent": {
-            "service": "https://public.api.bsky.app/",
-          },
-          "did": undefined,
-        },
-        "needsPersist": false,
-      }
-    `)
+{
+  "accounts": [],
+  "currentAgentState": {
+    "agent": {
+      "service": "http://localhost:2584/",
+    },
+    "did": undefined,
+  },
+  "needsPersist": false,
+}
+`)
 
     const agent = new BskyAgent({service: 'https://alice.com'})
     agent.sessionManager.session = {
@@ -87,33 +87,33 @@ describe('session', () => {
     expect(state.accounts[0].accessJwt).toBe(undefined)
     expect(state.accounts[0].refreshJwt).toBe(undefined)
     expect(printState(state)).toMatchInlineSnapshot(`
-      {
-        "accounts": [
-          {
-            "accessJwt": undefined,
-            "active": true,
-            "did": "alice-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "alice.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": undefined,
-            "service": "https://alice.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-        ],
-        "currentAgentState": {
-          "agent": {
-            "service": "https://public.api.bsky.app/",
-          },
-          "did": undefined,
-        },
-        "needsPersist": true,
-      }
-    `)
+{
+  "accounts": [
+    {
+      "accessJwt": undefined,
+      "active": true,
+      "did": "alice-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "alice.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": undefined,
+      "service": "https://alice.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+  ],
+  "currentAgentState": {
+    "agent": {
+      "service": "http://localhost:2584/",
+    },
+    "did": undefined,
+  },
+  "needsPersist": true,
+}
+`)
   })
 
   it('switches to the latest account, stores all of them', () => {
@@ -395,63 +395,63 @@ describe('session', () => {
     expect(state.accounts[2].accessJwt).toBe(undefined)
     expect(state.accounts[2].refreshJwt).toBe(undefined)
     expect(printState(state)).toMatchInlineSnapshot(`
-      {
-        "accounts": [
-          {
-            "accessJwt": undefined,
-            "active": true,
-            "did": "jay-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "jay.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": undefined,
-            "service": "https://jay.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-          {
-            "accessJwt": undefined,
-            "active": true,
-            "did": "alice-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "alice-updated.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": undefined,
-            "service": "https://alice.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-          {
-            "accessJwt": undefined,
-            "active": true,
-            "did": "bob-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "bob.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": undefined,
-            "service": "https://bob.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-        ],
-        "currentAgentState": {
-          "agent": {
-            "service": "https://public.api.bsky.app/",
-          },
-          "did": undefined,
-        },
-        "needsPersist": true,
-      }
-    `)
+{
+  "accounts": [
+    {
+      "accessJwt": undefined,
+      "active": true,
+      "did": "jay-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "jay.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": undefined,
+      "service": "https://jay.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+    {
+      "accessJwt": undefined,
+      "active": true,
+      "did": "alice-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "alice-updated.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": undefined,
+      "service": "https://alice.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+    {
+      "accessJwt": undefined,
+      "active": true,
+      "did": "bob-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "bob.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": undefined,
+      "service": "https://bob.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+  ],
+  "currentAgentState": {
+    "agent": {
+      "service": "http://localhost:2584/",
+    },
+    "did": undefined,
+  },
+  "needsPersist": true,
+}
+`)
   })
 
   it('can log back in after logging out', () => {
@@ -487,33 +487,33 @@ describe('session', () => {
     expect(state.accounts[0].refreshJwt).toBe(undefined)
     expect(state.currentAgentState.did).toBe(undefined)
     expect(printState(state)).toMatchInlineSnapshot(`
-      {
-        "accounts": [
-          {
-            "accessJwt": undefined,
-            "active": true,
-            "did": "alice-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "alice.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": undefined,
-            "service": "https://alice.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-        ],
-        "currentAgentState": {
-          "agent": {
-            "service": "https://public.api.bsky.app/",
-          },
-          "did": undefined,
-        },
-        "needsPersist": true,
-      }
-    `)
+{
+  "accounts": [
+    {
+      "accessJwt": undefined,
+      "active": true,
+      "did": "alice-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "alice.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": undefined,
+      "service": "https://alice.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+  ],
+  "currentAgentState": {
+    "agent": {
+      "service": "http://localhost:2584/",
+    },
+    "did": undefined,
+  },
+  "needsPersist": true,
+}
+`)
 
     const agent2 = new BskyAgent({service: 'https://alice.com'})
     agent2.sessionManager.session = {
@@ -596,17 +596,17 @@ describe('session', () => {
     expect(state.accounts.length).toBe(0)
     expect(state.currentAgentState.did).toBe(undefined)
     expect(printState(state)).toMatchInlineSnapshot(`
-      {
-        "accounts": [],
-        "currentAgentState": {
-          "agent": {
-            "service": "https://public.api.bsky.app/",
-          },
-          "did": undefined,
-        },
-        "needsPersist": true,
-      }
-    `)
+{
+  "accounts": [],
+  "currentAgentState": {
+    "agent": {
+      "service": "http://localhost:2584/",
+    },
+    "did": undefined,
+  },
+  "needsPersist": true,
+}
+`)
   })
 
   it('can remove inactive account', () => {
@@ -745,48 +745,48 @@ describe('session', () => {
     expect(state.accounts[1].refreshJwt).toBe('alice-refresh-jwt-1')
     expect(state.currentAgentState.did).toBe(undefined)
     expect(printState(state)).toMatchInlineSnapshot(`
-      {
-        "accounts": [
-          {
-            "accessJwt": undefined,
-            "active": true,
-            "did": "bob-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "bob.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": undefined,
-            "service": "https://bob.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-          {
-            "accessJwt": "alice-access-jwt-1",
-            "active": true,
-            "did": "alice-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "alice.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": "alice-refresh-jwt-1",
-            "service": "https://alice.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-        ],
-        "currentAgentState": {
-          "agent": {
-            "service": "https://public.api.bsky.app/",
-          },
-          "did": undefined,
-        },
-        "needsPersist": true,
-      }
-    `)
+{
+  "accounts": [
+    {
+      "accessJwt": undefined,
+      "active": true,
+      "did": "bob-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "bob.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": undefined,
+      "service": "https://bob.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+    {
+      "accessJwt": "alice-access-jwt-1",
+      "active": true,
+      "did": "alice-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "alice.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": "alice-refresh-jwt-1",
+      "service": "https://alice.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+  ],
+  "currentAgentState": {
+    "agent": {
+      "service": "http://localhost:2584/",
+    },
+    "did": undefined,
+  },
+  "needsPersist": true,
+}
+`)
   })
 
   it('updates stored account with refreshed tokens', () => {
@@ -1409,33 +1409,33 @@ describe('session', () => {
     expect(state.accounts[0].refreshJwt).toBe(undefined)
     expect(state.currentAgentState.did).toBe(undefined)
     expect(printState(state)).toMatchInlineSnapshot(`
-      {
-        "accounts": [
-          {
-            "accessJwt": undefined,
-            "active": true,
-            "did": "alice-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "alice.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": undefined,
-            "service": "https://alice.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-        ],
-        "currentAgentState": {
-          "agent": {
-            "service": "https://public.api.bsky.app/",
-          },
-          "did": undefined,
-        },
-        "needsPersist": true,
-      }
-    `)
+{
+  "accounts": [
+    {
+      "accessJwt": undefined,
+      "active": true,
+      "did": "alice-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "alice.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": undefined,
+      "service": "https://alice.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+  ],
+  "currentAgentState": {
+    "agent": {
+      "service": "http://localhost:2584/",
+    },
+    "did": undefined,
+  },
+  "needsPersist": true,
+}
+`)
   })
 
   it('resets tokens on created-failed event', () => {
@@ -1475,33 +1475,33 @@ describe('session', () => {
     expect(state.accounts[0].refreshJwt).toBe(undefined)
     expect(state.currentAgentState.did).toBe(undefined)
     expect(printState(state)).toMatchInlineSnapshot(`
-      {
-        "accounts": [
-          {
-            "accessJwt": undefined,
-            "active": true,
-            "did": "alice-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "alice.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": undefined,
-            "service": "https://alice.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-        ],
-        "currentAgentState": {
-          "agent": {
-            "service": "https://public.api.bsky.app/",
-          },
-          "did": undefined,
-        },
-        "needsPersist": true,
-      }
-    `)
+{
+  "accounts": [
+    {
+      "accessJwt": undefined,
+      "active": true,
+      "did": "alice-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "alice.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": undefined,
+      "service": "https://alice.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+  ],
+  "currentAgentState": {
+    "agent": {
+      "service": "http://localhost:2584/",
+    },
+    "did": undefined,
+  },
+  "needsPersist": true,
+}
+`)
   })
 
   it('replaces local accounts with synced accounts', () => {
@@ -1638,33 +1638,33 @@ describe('session', () => {
     expect(state.currentAgentState.did).toBe(undefined)
     expect(state.needsPersist).toBe(false)
     expect(printState(state)).toMatchInlineSnapshot(`
-      {
-        "accounts": [
-          {
-            "accessJwt": "clarence-access-jwt-2",
-            "active": true,
-            "did": "clarence-did",
-            "email": undefined,
-            "emailAuthFactor": false,
-            "emailConfirmed": false,
-            "handle": "clarence.test",
-            "isSelfHosted": true,
-            "pdsUrl": undefined,
-            "refreshJwt": "clarence-refresh-jwt-2",
-            "service": "https://clarence.com/",
-            "signupQueued": false,
-            "status": undefined,
-          },
-        ],
-        "currentAgentState": {
-          "agent": {
-            "service": "https://public.api.bsky.app/",
-          },
-          "did": undefined,
-        },
-        "needsPersist": false,
-      }
-    `)
+{
+  "accounts": [
+    {
+      "accessJwt": "clarence-access-jwt-2",
+      "active": true,
+      "did": "clarence-did",
+      "email": undefined,
+      "emailAuthFactor": false,
+      "emailConfirmed": false,
+      "handle": "clarence.test",
+      "isSelfHosted": true,
+      "pdsUrl": undefined,
+      "refreshJwt": "clarence-refresh-jwt-2",
+      "service": "https://clarence.com/",
+      "signupQueued": false,
+      "status": undefined,
+    },
+  ],
+  "currentAgentState": {
+    "agent": {
+      "service": "http://localhost:2584/",
+    },
+    "did": undefined,
+  },
+  "needsPersist": false,
+}
+`)
   })
 })
 

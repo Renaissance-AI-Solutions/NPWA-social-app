@@ -7,7 +7,14 @@ import {isInvalidHandle} from '#/lib/strings/handles'
 import {startUriToStarterPackUri} from '#/lib/strings/starter-pack'
 import {logger} from '#/logger'
 
-export const BSKY_APP_HOST = 'https://bsky.app'
+const TRUSTED_REGEX = /^(https:\/\/)?([\w-]+\.)*(?:bsky\.app|bsky\.dev|bsky\.qa|bsky\.blue|social\.bsky\.dev|bsky\.town|blueskyweb\.zendesk\.com)($|\/)/i
+
+// Use local host for development, external for production
+export const BSKY_APP_HOST =
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+    ? 'http://localhost:19006'
+    : 'https://bsky.app'
+
 const BSKY_TRUSTED_HOSTS = [
   'bsky\\.app',
   'bsky\\.social',
@@ -20,7 +27,7 @@ const BSKY_TRUSTED_HOSTS = [
  * This will allow any BSKY_TRUSTED_HOSTS value by itself or with a subdomain.
  * It will also allow relative paths like /profile as well as #.
  */
-const TRUSTED_REGEX = new RegExp(
+const TRUSTED_REGEX_DEV = new RegExp(
   `^(http(s)?://(([\\w-]+\\.)?${BSKY_TRUSTED_HOSTS.join(
     '|([\\w-]+\\.)?',
   )})|/|#)`,
@@ -53,6 +60,11 @@ export function toNiceDomain(url: string): string {
     const urlp = new URL(url)
     if (`https://${urlp.host}` === BSKY_SERVICE) {
       return 'Bluesky Social'
+    }
+    // Check for local development services (NPWA Platform)
+    if (urlp.host === 'localhost:3000' || urlp.host === '10.0.2.2:3000' || 
+        urlp.host === 'localhost:3001' || urlp.host === '10.0.2.2:3001') {
+      return 'NPWA Social'
     }
     return urlp.host ? urlp.host : url
   } catch (e) {
@@ -112,7 +124,7 @@ export function isExternalUrl(url: string): boolean {
 }
 
 export function isTrustedUrl(url: string): boolean {
-  return TRUSTED_REGEX.test(url)
+  return TRUSTED_REGEX_DEV.test(url)
 }
 
 export function isBskyPostUrl(url: string): boolean {
