@@ -105,6 +105,8 @@ import TopicScreen from '#/screens/Topic'
 import {VideoFeed} from '#/screens/VideoFeed'
 import {JournalList} from '#/screens/Journal/List'
 import {JournalComposer} from '#/screens/Journal/Composer'
+import {SourcesList} from '#/screens/Sources/List'
+import {SourceDetail} from '#/screens/Sources/Detail'
 import {type Theme, useTheme} from '#/alf'
 import {
   EmailDialogScreenID,
@@ -564,6 +566,22 @@ function commonScreens(Stack: typeof Flat, unreadCountLabel?: string) {
         getComponent={() => VideoFeed}
         options={{
           title: title(msg`Video Feed`),
+          requireAuth: true,
+        }}
+      />
+      <Stack.Screen
+        name="Sources"
+        getComponent={() => SourcesList}
+        options={{
+          title: title(msg`Sources`),
+          requireAuth: true,
+        }}
+      />
+      <Stack.Screen
+        name="SourceDetail"
+        getComponent={() => SourceDetail}
+        options={{
+          title: title(msg`Source Details`),
           requireAuth: true,
         }}
       />

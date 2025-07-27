@@ -61,6 +61,7 @@ import {
   Message_Stroke2_Corner0_Rounded as Message,
   Message_Stroke2_Corner0_Rounded_Filled as MessageFilled,
 } from '#/components/icons/Message'
+import {News2_Stroke2_Corner0_Rounded as News2} from '#/components/icons/News2'
 import {PlusLarge_Stroke2_Corner0_Rounded as PlusIcon} from '#/components/icons/Plus'
 import {
   SettingsGear2_Filled_Corner0_Rounded as SettingsFilled,
@@ -689,6 +690,24 @@ export function DesktopLeftNav() {
               />
             }
             label={_(msg`Lists`)}
+          />
+          <NavItem
+            href="/sources"
+            icon={
+              <News2
+                style={pal.text}
+                aria-hidden={true}
+                width={NAV_ICON_WIDTH}
+              />
+            }
+            iconFilled={
+              <News2
+                style={pal.text}
+                aria-hidden={true}
+                width={NAV_ICON_WIDTH}
+              />
+            }
+            label={_(msg`Sources`)}
           />
           <NavItem
             href={currentAccount ? makeProfileLink(currentAccount) : '/'}

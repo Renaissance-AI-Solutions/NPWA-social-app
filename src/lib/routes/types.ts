@@ -79,6 +79,8 @@ export type CommonNavigatorParams = {
   StarterPackShort: {code: string}
   StarterPackWizard: undefined
   StarterPackEdit: {rkey?: string}
+  Sources: undefined
+  SourceDetail: {id: string}
   VideoFeed: VideoFeedSourceContext
 }
 
@@ -123,6 +125,8 @@ export type FlatNavigatorParams = CommonNavigatorParams & {
   Notifications: undefined
   JournalList: undefined
   JournalComposer: undefined
+  Sources: undefined
+  SourceDetail: {id: string}
   Messages: {pushToConversation?: string; animation?: 'push' | 'pop'}
 }
 
@@ -138,6 +142,8 @@ export type AllNavigatorParams = CommonNavigatorParams & {
   JournalTab: undefined
   JournalList: undefined
   JournalComposer: undefined
+  Sources: undefined
+  SourceDetail: {id: string}
   MessagesTab: undefined
   Messages: {animation?: 'push' | 'pop'}
 }

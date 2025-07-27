@@ -1,5 +1,6 @@
-import {BskyAgent} from '@atproto/api'
-import {useAgent} from '#/state/session'
+import {useState, useCallback} from 'react'
+import {AtpAgent} from '@atproto/api'
+import {useSession} from '#/state/session'
 
 export interface Source {
   id: string
@@ -11,14 +12,29 @@ export interface Source {
   downvotes: number
   rank: 'new' | 'debated' | 'debunked' | 'slightly_vetted' | 'vetted' | 'trusted'
   createdAt: string
+  updatedAt: string
+  userVote?: 'up' | 'down' | null
+}
+
+export interface SourceComment {
+  id: string
+  sourceId: string
+  author: {
+    did: string
+    handle: string
+    displayName?: string
+    avatar?: string
+  }
+  content: string
+  createdAt: string
 }
 
 export interface SourcesListParams {
-  limit?: number
-  cursor?: string
+  search?: string
   badgeType?: string
   rank?: string
-  search?: string
+  cursor?: string
+  limit?: number
 }
 
 export interface SourcesListResponse {
@@ -33,195 +49,255 @@ export interface CreateSourceParams {
   badgeType?: string
 }
 
-export interface CreateSourceResponse {
-  source: Source
-}
-
-export interface VoteSourceParams {
+export interface VoteParams {
   sourceId: string
   vote: 'up' | 'down'
 }
 
-export interface VoteSourceResponse {
+export interface VoteResponse {
   source: Source
+  userVote: 'up' | 'down' | null
+}
+
+export interface CommentParams {
+  sourceId: string
+  content: string
 }
 
 // Mock data for development - replace with actual API calls when backend is ready
-const MOCK_SOURCES: Source[] = [
-  {
-    id: '1',
-    name: 'Havana Syndrome Research Paper - NIH',
-    url: 'https://www.nih.gov/news-events/news-releases/nih-study-havana-syndrome',
-    badgeType: 'havana',
-    upvotes: 45,
-    downvotes: 3,
-    rank: 'vetted',
-    createdAt: '2024-01-15T10:30:00Z',
-  },
-  {
-    id: '2',
-    name: 'FBI FOIA Document - Gangstalking Investigation',
-    url: 'https://vault.fbi.gov/gangstalking',
-    badgeType: 'gangstalked',
-    upvotes: 23,
-    downvotes: 8,
-    rank: 'slightly_vetted',
-    createdAt: '2024-01-14T15:45:00Z',
-  },
-  {
-    id: '3',
-    name: 'NSA Whistleblower Report - Mass Surveillance',
-    url: 'https://www.theguardian.com/world/2013/jun/06/nsa-phone-records-verizon-court-order',
-    badgeType: 'whistleblower',
-    upvotes: 156,
-    downvotes: 12,
-    rank: 'trusted',
-    createdAt: '2024-01-13T09:20:00Z',
-  },
-  {
-    id: '4',
-    name: 'Congressional Hearing on Directed Energy Weapons',
-    url: 'https://www.congress.gov/hearing/directed-energy-weapons',
-    badgeType: 'targeted',
-    upvotes: 67,
-    downvotes: 5,
-    rank: 'vetted',
-    createdAt: '2024-01-12T14:10:00Z',
-  },
-  {
-    id: '5',
-    name: 'Retaliation Against Federal Employees - OIG Report',
-    url: 'https://www.oig.gov/reports/retaliation-federal-employees',
-    badgeType: 'retaliation',
-    upvotes: 34,
-    downvotes: 7,
-    rank: 'slightly_vetted',
-    createdAt: '2024-01-11T11:55:00Z',
-  },
-  {
-    id: '6',
-    name: 'Unverified Social Media Post',
-    url: 'https://twitter.com/user/status/123456',
-    upvotes: 2,
-    downvotes: 15,
-    rank: 'debunked',
-    createdAt: '2024-01-10T16:30:00Z',
-  },
-]
-
-export class SourcesAPI {
-  constructor(private agent: BskyAgent) {}
-
-  async list(params: SourcesListParams = {}): Promise<SourcesListResponse> {
-    // TODO: Replace with actual API call when backend is ready
-    // return this.agent.api.app.npwa.sources.list(params)
-    
-    // Mock implementation for development
-    let filteredSources = [...MOCK_SOURCES]
-    
-    // Apply filters
-    if (params.badgeType) {
-      filteredSources = filteredSources.filter(s => s.badgeType === params.badgeType)
-    }
-    
-    if (params.rank) {
-      filteredSources = filteredSources.filter(s => s.rank === params.rank)
-    }
-    
-    if (params.search) {
-      const searchLower = params.search.toLowerCase()
-      filteredSources = filteredSources.filter(s => 
-        s.name.toLowerCase().includes(searchLower) ||
-        (s.url && s.url.toLowerCase().includes(searchLower))
-      )
-    }
-    
-    // Sort by rank priority then by votes
-    const rankOrder = ['trusted', 'vetted', 'slightly_vetted', 'debated', 'new', 'debunked']
-    filteredSources.sort((a, b) => {
-      const rankDiff = rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank)
-      if (rankDiff !== 0) return rankDiff
-      return b.upvotes - a.upvotes
-    })
-    
-    // Apply pagination
-    const limit = params.limit || 50
-    const startIndex = params.cursor ? parseInt(params.cursor, 10) : 0
-    const endIndex = startIndex + limit
-    const paginatedSources = filteredSources.slice(startIndex, endIndex)
-    
-    return {
-      sources: paginatedSources,
-      cursor: endIndex < filteredSources.length ? endIndex.toString() : undefined,
-    }
-  }
-
-  async create(params: CreateSourceParams): Promise<CreateSourceResponse> {
-    // TODO: Replace with actual API call when backend is ready
-    // return this.agent.api.app.npwa.sources.create(params)
-    
-    // Mock implementation for development
-    const newSource: Source = {
-      id: Date.now().toString(),
-      name: params.name,
-      url: params.url,
-      documentId: params.documentId,
-      badgeType: params.badgeType as any,
-      upvotes: 0,
-      downvotes: 0,
-      rank: 'new',
-      createdAt: new Date().toISOString(),
-    }
-    
-    MOCK_SOURCES.unshift(newSource)
-    
-    return {
-      source: newSource,
-    }
-  }
-
-  async vote(params: VoteSourceParams): Promise<VoteSourceResponse> {
-    // TODO: Replace with actual API call when backend is ready
-    // return this.agent.api.app.npwa.sources.vote(params)
-    
-    // Mock implementation for development
-    const sourceIndex = MOCK_SOURCES.findIndex(s => s.id === params.sourceId)
-    if (sourceIndex === -1) {
-      throw new Error('Source not found')
-    }
-    
-    const source = MOCK_SOURCES[sourceIndex]
-    if (params.vote === 'up') {
-      source.upvotes += 1
-    } else {
-      source.downvotes += 1
-    }
-    
-    // Recalculate rank based on vote ratio
-    const totalVotes = source.upvotes + source.downvotes
-    if (totalVotes >= 5) {
-      const ratio = source.upvotes / totalVotes
-      if (ratio >= 0.9) {
-        source.rank = 'trusted'
-      } else if (ratio >= 0.8) {
-        source.rank = 'vetted'
-      } else if (ratio >= 0.6) {
-        source.rank = 'slightly_vetted'
-      } else if (ratio >= 0.4) {
-        source.rank = 'debated'
-      } else {
-        source.rank = 'debunked'
-      }
-    }
-    
-    return {
-      source,
-    }
-  }
+const generateMockSources = (count: number, offset: number = 0): Source[] => {
+  const badgeTypes = ['havana', 'gangstalked', 'targeted', 'whistleblower', 'retaliation'] as const
+  const ranks = ['new', 'debated', 'debunked', 'slightly_vetted', 'vetted', 'trusted'] as const
+  
+  return Array.from({length: count}, (_, i) => ({
+    id: `source_${offset + i + 1}`,
+    name: `Source ${offset + i + 1}: ${['Harvard Medical Study', 'FBI Report', 'Scientific Journal', 'Government Document', 'Research Paper'][i % 5]}`,
+    url: i % 3 === 0 ? `https://example.com/source-${offset + i + 1}` : undefined,
+    documentId: i % 3 === 1 ? `doc_${offset + i + 1}` : undefined,
+    badgeType: i % 4 === 0 ? badgeTypes[i % badgeTypes.length] : undefined,
+    upvotes: Math.floor(Math.random() * 100),
+    downvotes: Math.floor(Math.random() * 20),
+    rank: ranks[i % ranks.length],
+    createdAt: new Date(Date.now() - (offset + i) * 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - (offset + i) * 43200000).toISOString(),
+    userVote: null,
+  }))
 }
 
-// Hook to get sources API instance
+const generateMockComments = (sourceId: string): SourceComment[] => {
+  return [
+    {
+      id: `comment_${sourceId}_1`,
+      sourceId,
+      author: {
+        did: 'did:plc:user1',
+        handle: 'researcher.bsky.social',
+        displayName: 'Dr. Research',
+        avatar: undefined,
+      },
+      content: 'This source provides valuable insights into the documented patterns of harassment.',
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+    },
+    {
+      id: `comment_${sourceId}_2`,
+      sourceId,
+      author: {
+        did: 'did:plc:user2',
+        handle: 'analyst.bsky.social',
+        displayName: 'Security Analyst',
+        avatar: undefined,
+      },
+      content: 'The methodology appears sound, though additional verification would strengthen the claims.',
+      createdAt: new Date(Date.now() - 172800000).toISOString(),
+    },
+  ]
+}
+
 export function useSourcesAPI() {
-  const agent = useAgent()
-  return new SourcesAPI(agent)
-} 
+  const {agent} = useSession()
+  
+  const list = useCallback(async (params: SourcesListParams): Promise<SourcesListResponse> => {
+    try {
+      // TODO: Replace with actual API call when backend is ready
+      // const response = await agent.api.app.npwa.sources.list(params)
+      
+      // Mock implementation for development
+      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate network delay
+      
+      const allSources = generateMockSources(50)
+      let filteredSources = allSources
+      
+      // Apply filters
+      if (params.search) {
+        filteredSources = filteredSources.filter(source =>
+          source.name.toLowerCase().includes(params.search!.toLowerCase())
+        )
+      }
+      
+      if (params.badgeType) {
+        filteredSources = filteredSources.filter(source =>
+          source.badgeType === params.badgeType
+        )
+      }
+      
+      if (params.rank) {
+        filteredSources = filteredSources.filter(source =>
+          source.rank === params.rank
+        )
+      }
+      
+      // Apply pagination
+      const cursorIndex = params.cursor ? parseInt(params.cursor) : 0
+      const limit = params.limit || 20
+      const paginatedSources = filteredSources.slice(cursorIndex, cursorIndex + limit)
+      const nextCursor = cursorIndex + limit < filteredSources.length ? (cursorIndex + limit).toString() : undefined
+      
+      return {
+        sources: paginatedSources,
+        cursor: nextCursor,
+      }
+    } catch (error) {
+      console.error('Sources API list error:', error)
+      throw new Error('Failed to fetch sources')
+    }
+  }, [agent])
+
+  const create = useCallback(async (params: CreateSourceParams): Promise<Source> => {
+    try {
+      // TODO: Replace with actual API call when backend is ready
+      // const response = await agent.api.app.npwa.sources.create(params)
+      
+      // Mock implementation for development
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      const newSource: Source = {
+        id: `source_new_${Date.now()}`,
+        name: params.name,
+        url: params.url,
+        documentId: params.documentId,
+        badgeType: params.badgeType as any,
+        upvotes: 0,
+        downvotes: 0,
+        rank: 'new',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        userVote: null,
+      }
+      
+      return newSource
+    } catch (error) {
+      console.error('Sources API create error:', error)
+      throw new Error('Failed to create source')
+    }
+  }, [agent])
+
+  const vote = useCallback(async (params: VoteParams): Promise<VoteResponse> => {
+    try {
+      // TODO: Replace with actual API call when backend is ready
+      // const response = await agent.api.app.npwa.sources.vote(params)
+      
+      // Mock implementation for development
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Mock source update
+      const mockSource: Source = {
+        id: params.sourceId,
+        name: 'Mock Source',
+        upvotes: Math.floor(Math.random() * 100),
+        downvotes: Math.floor(Math.random() * 20),
+        rank: 'debated',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        userVote: params.vote,
+      }
+      
+      return {
+        source: mockSource,
+        userVote: params.vote,
+      }
+    } catch (error) {
+      console.error('Sources API vote error:', error)
+      throw new Error('Failed to vote on source')
+    }
+  }, [agent])
+
+  const getById = useCallback(async (sourceId: string): Promise<Source> => {
+    try {
+      // TODO: Replace with actual API call when backend is ready
+      // const response = await agent.api.app.npwa.sources.get({sourceId})
+      
+      // Mock implementation for development
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      const mockSource: Source = {
+        id: sourceId,
+        name: 'Harvard Medical School Study on Havana Syndrome',
+        url: 'https://www.health.harvard.edu/blog/havana-syndrome-what-we-know-202112062663',
+        badgeType: 'havana',
+        upvotes: 45,
+        downvotes: 2,
+        rank: 'vetted',
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        updatedAt: new Date(Date.now() - 43200000).toISOString(),
+        userVote: null,
+      }
+      
+      return mockSource
+    } catch (error) {
+      console.error('Sources API getById error:', error)
+      throw new Error('Failed to fetch source')
+    }
+  }, [agent])
+
+  const getComments = useCallback(async (sourceId: string): Promise<SourceComment[]> => {
+    try {
+      // TODO: Replace with actual API call when backend is ready
+      // const response = await agent.api.app.npwa.sources.getComments({sourceId})
+      
+      // Mock implementation for development
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      return generateMockComments(sourceId)
+    } catch (error) {
+      console.error('Sources API getComments error:', error)
+      throw new Error('Failed to fetch comments')
+    }
+  }, [agent])
+
+  const addComment = useCallback(async (params: CommentParams): Promise<SourceComment> => {
+    try {
+      // TODO: Replace with actual API call when backend is ready
+      // const response = await agent.api.app.npwa.sources.addComment(params)
+      
+      // Mock implementation for development
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      const newComment: SourceComment = {
+        id: `comment_${params.sourceId}_${Date.now()}`,
+        sourceId: params.sourceId,
+        author: {
+          did: 'did:plc:currentuser',
+          handle: 'you.bsky.social',
+          displayName: 'You',
+          avatar: undefined,
+        },
+        content: params.content,
+        createdAt: new Date().toISOString(),
+      }
+      
+      return newComment
+    } catch (error) {
+      console.error('Sources API addComment error:', error)
+      throw new Error('Failed to add comment')
+    }
+  }, [agent])
+
+  return {
+    list,
+    create,
+    vote,
+    getById,
+    getComments,
+    addComment,
+  }
+}

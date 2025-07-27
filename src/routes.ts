@@ -84,6 +84,9 @@ export const router = new Router<AllNavigatableRoutes>({
   // Journal
   JournalList: '/journal',
   JournalComposer: '/journal/new',
+  // Sources
+  Sources: '/sources',
+  SourceDetail: '/sources/:id',
   // starter packs
   Start: '/start/:name/:rkey',
   StarterPackEdit: '/starter-pack/edit/:rkey',
