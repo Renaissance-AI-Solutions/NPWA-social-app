@@ -77,6 +77,18 @@
     tlds "^1.234.0"
     zod "^3.23.8"
 
+"@atproto/api@file:../NPWA-atproto/packages/api":
+  version "0.15.19"
+  dependencies:
+    "@atproto/common-web" "^0.4.2"
+    "@atproto/lexicon" "^0.4.11"
+    "@atproto/syntax" "^0.4.0"
+    "@atproto/xrpc" "^0.7.0"
+    await-lock "^2.2.2"
+    multiformats "^9.9.0"
+    tlds "^1.234.0"
+    zod "^3.23.8"
+
 "@atproto/aws@^0.2.22":
   version "0.2.22"
   resolved "https://registry.yarnpkg.com/@atproto/aws/-/aws-0.2.22.tgz#14a664c06e3569945e4ab143d3a8a03400c7d1de"

@@ -1,4 +1,4 @@
-import {AtpSessionData, AtpSessionEvent, BskyAgent} from '@atproto/api'
+import {AtpSessionData, AtpSessionEvent, BskyAgent, lexicons} from '@atproto/api'
 import {TID} from '@atproto/common-web'
 
 import {networkRetry} from '#/lib/async/retry'
@@ -243,6 +243,7 @@ class BskyAppAgent extends BskyAgent {
   constructor({service}: {service: string}) {
     super({
       service,
+      lexicons,
       async fetch(...args) {
         let success = false
         try {
