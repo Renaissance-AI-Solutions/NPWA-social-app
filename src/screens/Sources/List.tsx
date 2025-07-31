@@ -18,6 +18,8 @@ import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText, ButtonIcon} from '#/components/Button'
 import {Text} from '#/components/Typography'
 import * as Layout from '#/components/Layout'
+import * as Dialog from '#/components/Dialog'
+import {SourceCreationForm} from '#/components/SourceCreationForm'
 import {MagnifyingGlass_Filled_Stroke2_Corner0_Rounded as Search} from '#/components/icons/MagnifyingGlass'
 import {PlusLarge_Stroke2_Corner0_Rounded as Plus} from '#/components/icons/Plus'
 import {
@@ -40,6 +42,7 @@ export function SourcesList({onSourcePress, onCreateSource}: SourcesListProps) {
   const navigation = useNavigation<NavigationProp<AllNavigatorParams>>()
 
   const sourcesAPI = useSourcesAPI()
+  const createSourceDialogControl = Dialog.useDialogControl()
 
   const [sources, setSources] = useState<Source[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -112,6 +115,19 @@ export function SourcesList({onSourcePress, onCreateSource}: SourcesListProps) {
       Alert.alert(_(msg`Error`), _(msg`Failed to vote on source`))
     }
   }, [sourcesAPI, _])
+
+  const handleCreateSource = useCallback(() => {
+    if (onCreateSource) {
+      onCreateSource()
+    } else {
+      createSourceDialogControl.open()
+    }
+  }, [onCreateSource, createSourceDialogControl])
+
+  const handleSourceCreated = useCallback(() => {
+    // Refresh the sources list after creating a new source
+    loadSources(true)
+  }, [loadSources])
 
   const getRankColor = (rank: Source['rank']) => {
     switch (rank) {
@@ -231,19 +247,17 @@ export function SourcesList({onSourcePress, onCreateSource}: SourcesListProps) {
       <Text style={[a.text_md, a.text_center, {color: t.palette.contrast_600}, a.mb_lg]}>
         <Trans>No sources match your current filters. Try adjusting your search or filters, or add a new source.</Trans>
       </Text>
-      {onCreateSource && (
-        <Button
-          variant="solid"
-          color="primary"
-          size="large"
-          onPress={onCreateSource}
-          label={_(msg`Add First Source`)}>
-          <ButtonIcon icon={Plus} />
-          <ButtonText>
-            <Trans>Add First Source</Trans>
-          </ButtonText>
-        </Button>
-      )}
+      <Button
+        variant="solid"
+        color="primary"
+        size="large"
+        onPress={handleCreateSource}
+        label={_(msg`Add First Source`)}>
+        <ButtonIcon icon={Plus} />
+        <ButtonText>
+          <Trans>Add First Source</Trans>
+        </ButtonText>
+      </Button>
     </View>
   )
 
@@ -257,16 +271,14 @@ export function SourcesList({onSourcePress, onCreateSource}: SourcesListProps) {
           </Layout.Header.TitleText>
         </Layout.Header.Content>
         <Layout.Header.Slot>
-          {onCreateSource && (
-            <Button
-              variant="solid"
-              color="primary"
-              size="small"
-              onPress={onCreateSource}
-              label={_(msg`Add Source`)}>
-              <ButtonIcon icon={Plus} />
-            </Button>
-          )}
+          <Button
+            variant="solid"
+            color="primary"
+            size="small"
+            onPress={handleCreateSource}
+            label={_(msg`Add Source`)}>
+            <ButtonIcon icon={Plus} />
+          </Button>
         </Layout.Header.Slot>
       </Layout.Header.Outer>
 
@@ -394,6 +406,12 @@ export function SourcesList({onSourcePress, onCreateSource}: SourcesListProps) {
         accessibilityHint={_(msg`Scrollable list of sources. Tap on a source to view details.`)}
       />
       </Layout.Content>
+
+      {/* Source Creation Modal */}
+      <SourceCreationForm
+        control={createSourceDialogControl}
+        onSourceCreated={handleSourceCreated}
+      />
     </Layout.Screen>
   )
 }
