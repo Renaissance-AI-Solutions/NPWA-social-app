@@ -24,6 +24,7 @@ import {cleanError} from '#/lib/strings/errors'
 import {logger} from '#/logger'
 import {isIOS} from '#/platform/detection'
 import {SourcePicker, type Source as SourceType} from '#/components/SourcePicker'
+import {PrivacyControls, type VisibilityLevel} from '#/components/PrivacyControls'
 
 // Types for journal entry
 interface Symptom {
@@ -62,9 +63,10 @@ interface JournalEntry {
 interface Props {
   onSuccess?: () => void
   onCancel?: () => void
+  initialEntry?: Partial<JournalEntry>
 }
 
-export function JournalComposer({onSuccess, onCancel}: Props) {
+export function JournalComposer({onSuccess, onCancel, initialEntry}: Props) {
   const {_} = useLingui()
   const t = useTheme()
   const agent = useAgent()
@@ -72,14 +74,16 @@ export function JournalComposer({onSuccess, onCancel}: Props) {
   const queryClient = useQueryClient()
   const insets = useSafeAreaInsets()
   
-  // Form state
-  const [text, setText] = useState('')
-  const [entryType, setEntryType] = useState<'real_time' | 'backdated'>('real_time')
-  const [incidentTimestamp, setIncidentTimestamp] = useState<Date | null>(null)
-  const [location, setLocation] = useState<JournalEntry['location'] | null>(null)
-  const [isPrivate, setIsPrivate] = useState(false)
-  const [symptoms, setSymptoms] = useState<Symptom[]>([])
-  const [tags, setTags] = useState<string[]>([])
+  // Form state - initialize with initialEntry if provided
+  const [text, setText] = useState(initialEntry?.text || '')
+  const [entryType, setEntryType] = useState<'real_time' | 'backdated'>(initialEntry?.entryType || 'real_time')
+  const [incidentTimestamp, setIncidentTimestamp] = useState<Date | null>(
+    initialEntry?.incidentTimestamp ? new Date(initialEntry.incidentTimestamp) : null
+  )
+  const [location, setLocation] = useState<JournalEntry['location'] | null>(initialEntry?.location || null)
+  const [isPrivate, setIsPrivate] = useState(initialEntry?.isPrivate || false)
+  const [symptoms, setSymptoms] = useState<Symptom[]>(initialEntry?.symptoms || [])
+  const [tags, setTags] = useState<string[]>(initialEntry?.tags || [])
   const [sources, setSources] = useState<SourceType[]>([])
   
   // UI state
@@ -149,23 +153,41 @@ export function JournalComposer({onSuccess, onCancel}: Props) {
         ...entry,
       }
 
-      // Create the journal record via AT Protocol
-      const response = await agent.com.atproto.repo.createRecord({
-        repo: currentAccount.did,
-        collection: 'app.warlog.journal',
-        record,
-      })
-
-      return response
+      // Update existing entry or create new one
+      if (initialEntry?.uri) {
+        // Update existing entry
+        const response = await agent.com.atproto.repo.putRecord({
+          repo: currentAccount.did,
+          collection: 'app.warlog.journal',
+          rkey: initialEntry.uri.split('/').pop() || '',
+          record,
+        })
+        return response
+      } else {
+        // Create new entry
+        const response = await agent.com.atproto.repo.createRecord({
+          repo: currentAccount.did,
+          collection: 'app.warlog.journal',
+          record,
+        })
+        return response
+      }
     },
     onSuccess: () => {
-      Toast.show(_(msg`Journal entry saved successfully`))
+      const message = initialEntry?.uri 
+        ? _(msg`Journal entry updated successfully`)
+        : _(msg`Journal entry saved successfully`)
+      Toast.show(message)
       queryClient.invalidateQueries({queryKey: ['journal-entries']})
+      queryClient.invalidateQueries({queryKey: ['journal-entry', initialEntry?.uri]})
       onSuccess?.()
     },
     onError: (error) => {
       logger.error('Failed to save journal entry', {message: String(error)})
-      Toast.show(_(msg`Failed to save journal entry: ${cleanError(error)}`), 'xmark')
+      const message = initialEntry?.uri
+        ? _(msg`Failed to update journal entry: ${cleanError(error)}`)
+        : _(msg`Failed to save journal entry: ${cleanError(error)}`)
+      Toast.show(message, 'xmark')
     },
   })
 
@@ -213,7 +235,11 @@ export function JournalComposer({onSuccess, onCancel}: Props) {
         </Button>
         
         <Text style={[a.text_lg, a.font_bold]}>
-          <Trans>New Journal Entry</Trans>
+          {initialEntry?.uri ? (
+            <Trans>Edit Journal Entry</Trans>
+          ) : (
+            <Trans>New Journal Entry</Trans>
+          )}
         </Text>
         
         <Button

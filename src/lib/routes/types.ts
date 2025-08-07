@@ -116,6 +116,8 @@ export type MessagesTabNavigatorParams = CommonNavigatorParams & {
 export type JournalTabNavigatorParams = CommonNavigatorParams & {
   JournalList: undefined
   JournalComposer: undefined
+  JournalEntryDetail: {uri: string}
+  JournalAnalytics: undefined
 }
 
 export type FlatNavigatorParams = CommonNavigatorParams & {
@@ -125,6 +127,8 @@ export type FlatNavigatorParams = CommonNavigatorParams & {
   Notifications: undefined
   JournalList: undefined
   JournalComposer: undefined
+  JournalEntryDetail: {uri: string}
+  JournalAnalytics: undefined
   Sources: undefined
   SourceDetail: {id: string}
   Messages: {pushToConversation?: string; animation?: 'push' | 'pop'}
@@ -142,6 +146,8 @@ export type AllNavigatorParams = CommonNavigatorParams & {
   JournalTab: undefined
   JournalList: undefined
   JournalComposer: undefined
+  JournalEntryDetail: {uri: string}
+  JournalAnalytics: undefined
   Sources: undefined
   SourceDetail: {id: string}
   MessagesTab: undefined

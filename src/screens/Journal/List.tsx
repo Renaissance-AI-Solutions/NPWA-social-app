@@ -1,10 +1,12 @@
-import React, {useState, useCallback} from 'react'
+import {useState, useCallback} from 'react'
 import {
   View,
   FlatList,
   StyleSheet,
   RefreshControl,
   TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
 import {msg, Trans} from '@lingui/macro'
@@ -16,7 +18,12 @@ import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText, ButtonIcon} from '#/components/Button'
 import {Text} from '#/components/Typography'
 import {PlusLarge_Stroke2_Corner0_Rounded as Plus} from '#/components/icons/Plus'
-import {MagnifyingGlass_Filled_Stroke2_Corner0_Rounded as Search} from '#/components/icons/MagnifyingGlass'
+import {MagnifyingGlass_Filled_Corner0_Rounded as Search} from '#/components/icons/MagnifyingGlass'
+import {Lock_Stroke2_Corner0_Rounded as Lock} from '#/components/icons/Lock'
+import {Globe_Stroke2_Corner0_Rounded as Globe} from '#/components/icons/Globe'
+import {Group3_Stroke2_Corner0_Rounded as PersonGroup} from '#/components/icons/Group'
+import {Shield_Stroke2_Corner0_Rounded as Shield} from '#/components/icons/Shield'
+import {Clock_Stroke2_Corner0_Rounded as Clock} from '#/components/icons/Clock'
 import {cleanError} from '#/lib/strings/errors'
 import {logger} from '#/logger'
 
@@ -39,19 +46,22 @@ interface JournalEntry {
   }>
   tags?: string[]
   isPrivate: boolean
+  visibility: 'private' | 'contacts' | 'community' | 'public'
   createdAt: string
 }
 
 interface Props {
   onCreateEntry: () => void
+  onEntryPress?: (entryUri: string) => void
+  hideHeader?: boolean
 }
 
-export function JournalList({onCreateEntry}: Props) {
+export function JournalList({onCreateEntry, onEntryPress, hideHeader = false}: Props) {
   const {_} = useLingui()
   const t = useTheme()
   const agent = useAgent()
   const {currentAccount} = useSession()
-  const insets = useSafeAreaInsets()
+  const _insets = useSafeAreaInsets()
   
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'real_time' | 'backdated'>('all')
@@ -119,22 +129,68 @@ export function JournalList({onCreateEntry}: Props) {
       ? new Date(entry.incidentTimestamp)
       : null
 
+    const handleEntryPress = () => {
+      if (onEntryPress) {
+        onEntryPress(entry.uri)
+      }
+    }
+
+    const getVisibilityIcon = () => {
+      switch (entry.visibility) {
+        case 'private':
+          return <Lock size="xs" fill={t.palette.contrast_600} />
+        case 'contacts':
+          return <PersonGroup size="xs" fill={t.palette.primary_600} />
+        case 'community':
+          return <Shield size="xs" fill={t.palette.secondary_600} />
+        case 'public':
+          return <Globe size="xs" fill={t.palette.positive_600} />
+        default:
+          return <Lock size="xs" fill={t.palette.contrast_600} />
+      }
+    }
+    
+    const getVisibilityColor = () => {
+      switch (entry.visibility) {
+        case 'private':
+          return t.palette.contrast_600
+        case 'contacts':
+          return t.palette.primary_600
+        case 'community':
+          return t.palette.secondary_600
+        case 'public':
+          return t.palette.positive_600
+        default:
+          return t.palette.contrast_600
+      }
+    }
+
     return (
-      <View style={[styles.entryCard, {backgroundColor: t.palette.white}]}>
+      <TouchableOpacity 
+        style={[styles.entryCard, {backgroundColor: t.palette.white}]}
+        onPress={handleEntryPress}
+        activeOpacity={0.7}>
         <View style={styles.entryHeader}>
           <View style={styles.entryMeta}>
-            <Text style={[a.text_xs, {color: t.palette.contrast_600}]}>
-              {entry.entryType === 'real_time' ? (
-                <Trans>Real-time</Trans>
-              ) : (
-                <Trans>Backdated</Trans>
-              )}
-            </Text>
-            {entry.isPrivate && (
-              <Text style={[a.text_xs, {color: t.palette.primary_500}]}>
-                • <Trans>Private</Trans>
+            <View style={styles.entryTypeIndicator}>
+              <Clock size="xs" fill={t.palette.contrast_500} />
+              <Text style={[a.text_xs, {color: t.palette.contrast_600}]}>
+                {entry.entryType === 'real_time' ? (
+                  <Trans>Real-time</Trans>
+                ) : (
+                  <Trans>Backdated</Trans>
+                )}
               </Text>
-            )}
+            </View>
+            <View style={styles.visibilityIndicator}>
+              {getVisibilityIcon()}
+              <Text style={[a.text_xs, {color: getVisibilityColor()}]}>
+                {entry.visibility === 'private' && <Trans>Private</Trans>}
+                {entry.visibility === 'contacts' && <Trans>Contacts</Trans>}
+                {entry.visibility === 'community' && <Trans>Community</Trans>}
+                {entry.visibility === 'public' && <Trans>Public</Trans>}
+              </Text>
+            </View>
           </View>
           <Text style={[a.text_xs, {color: t.palette.contrast_500}]}>
             {entryDate.toLocaleDateString()}
@@ -180,113 +236,186 @@ export function JournalList({onCreateEntry}: Props) {
             Incident: {incidentDate.toLocaleDateString()}
           </Text>
         )}
+      </TouchableOpacity>
+    )
+  }, [t, _, onEntryPress])
+
+  const renderEmptyState = () => {
+    if (searchQuery.trim() || selectedFilter !== 'all') {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={[a.text_lg, a.font_bold, a.text_center, a.mb_md]}>
+            <Trans>No Matching Entries</Trans>
+          </Text>
+          <Text style={[a.text_md, a.text_center, {color: t.palette.contrast_600}, a.mb_lg]}>
+            <Trans>Try adjusting your search terms or filters.</Trans>
+          </Text>
+          <Button
+            variant="outline"
+            color="primary"
+            size="medium"
+            onPress={() => {
+              setSearchQuery('')
+              setSelectedFilter('all')
+            }}
+            label={_(msg`Clear Filters`)}>
+            <ButtonText>
+              <Trans>Clear Filters</Trans>
+            </ButtonText>
+          </Button>
+        </View>
+      )
+    }
+    
+    return (
+      <View style={styles.emptyState}>
+        <View style={[styles.emptyIcon, {backgroundColor: t.palette.primary_100}]}>
+          <Plus size="lg" fill={t.palette.primary_600} />
+        </View>
+        <Text style={[a.text_lg, a.font_bold, a.text_center, a.mb_md]}>
+          <Trans>No Journal Entries</Trans>
+        </Text>
+        <Text style={[a.text_md, a.text_center, {color: t.palette.contrast_600}, a.mb_lg]}>
+          <Trans>Start documenting incidents and experiences by creating your first journal entry.</Trans>
+        </Text>
+        <Button
+          variant="solid"
+          color="primary"
+          size="large"
+          onPress={onCreateEntry}
+          label={_(msg`Create First Entry`)}>
+          <ButtonIcon icon={Plus} />
+          <ButtonText>
+            <Trans>Create First Entry</Trans>
+          </ButtonText>
+        </Button>
       </View>
     )
-  }, [t, _])
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Text style={[a.text_lg, a.font_bold, a.text_center, a.mb_md]}>
-        <Trans>No Journal Entries</Trans>
-      </Text>
-      <Text style={[a.text_md, a.text_center, {color: t.palette.contrast_600}, a.mb_lg]}>
-        <Trans>Start documenting incidents and experiences by creating your first journal entry.</Trans>
-      </Text>
-      <Button
-        variant="solid"
-        color="primary"
-        size="large"
-        onPress={onCreateEntry}
-        label={_(msg`Create First Entry`)}>
-        <ButtonIcon icon={Plus} />
-        <ButtonText>
-          <Trans>Create First Entry</Trans>
-        </ButtonText>
-      </Button>
-    </View>
-  )
+  }
 
   return (
     <View style={[styles.container, {backgroundColor: t.palette.contrast_25}]}>
-      {/* Header */}
-      <View style={[styles.header, {backgroundColor: t.palette.white}]}>
-        <View style={styles.headerRow}>
-          <Text style={[a.text_xl, a.font_bold]}>
-            <Trans>Journal</Trans>
+      {/* Header - only show if not hidden */}
+      {!hideHeader && (
+        <View style={[styles.header, {backgroundColor: t.palette.white}]}>
+          <View style={styles.headerRow}>
+            <Text style={[a.text_xl, a.font_bold]}>
+              <Trans>Journal</Trans>
+            </Text>
+            <Button
+              variant="solid"
+              color="primary"
+              size="small"
+              onPress={onCreateEntry}
+              label={_(msg`New Entry`)}>
+              <ButtonIcon icon={Plus} />
+            </Button>
+          </View>
+
+          {/* Search */}
+          <View style={[styles.searchContainer, {backgroundColor: t.palette.contrast_50}]}>
+            <Search size="md" fill={t.palette.contrast_400} />
+            <TextInput
+              style={[styles.searchInput, {color: t.palette.contrast_800}]}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder={_(msg`Search entries...`)}
+              placeholderTextColor={t.palette.contrast_400}
+            />
+          </View>
+
+          {/* Filters */}
+          <View style={styles.filtersContainer}>
+            <Button
+              variant={selectedFilter === 'all' ? 'solid' : 'outline'}
+              color="primary"
+              size="small"
+              onPress={() => setSelectedFilter('all')}
+              label={_(msg`All`)}>
+              <ButtonText>
+                <Trans>All</Trans>
+              </ButtonText>
+            </Button>
+            <Button
+              variant={selectedFilter === 'real_time' ? 'solid' : 'outline'}
+              color="primary"
+              size="small"
+              onPress={() => setSelectedFilter('real_time')}
+              label={_(msg`Real-time`)}>
+              <ButtonText>
+                <Trans>Real-time</Trans>
+              </ButtonText>
+            </Button>
+            <Button
+              variant={selectedFilter === 'backdated' ? 'solid' : 'outline'}
+              color="primary"
+              size="small"
+              onPress={() => setSelectedFilter('backdated')}
+              label={_(msg`Backdated`)}>
+              <ButtonText>
+                <Trans>Backdated</Trans>
+              </ButtonText>
+            </Button>
+          </View>
+        </View>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={t.palette.primary_500} />
+          <Text style={[a.text_md, a.mt_md, {color: t.palette.contrast_600}]}>
+            <Trans>Loading entries...</Trans>
+          </Text>
+        </View>
+      )}
+      
+      {/* Error State */}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={[a.text_lg, a.font_bold, a.text_center, a.mb_md]}>
+            <Trans>Error Loading Entries</Trans>
+          </Text>
+          <Text style={[a.text_md, a.text_center, {color: t.palette.contrast_600}, a.mb_lg]}>
+            {cleanError(String(error))}
           </Text>
           <Button
             variant="solid"
             color="primary"
-            size="small"
-            onPress={onCreateEntry}
-            label={_(msg`New Entry`)}>
-            <ButtonIcon icon={Plus} />
-          </Button>
-        </View>
-
-        {/* Search */}
-        <View style={[styles.searchContainer, {backgroundColor: t.palette.contrast_50}]}>
-          <Search size="md" fill={t.palette.contrast_400} />
-          <TextInput
-            style={[styles.searchInput, {color: t.palette.contrast_800}]}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder={_(msg`Search entries...`)}
-            placeholderTextColor={t.palette.contrast_400}
-          />
-        </View>
-
-        {/* Filters */}
-        <View style={styles.filtersContainer}>
-          <Button
-            variant={selectedFilter === 'all' ? 'solid' : 'outline'}
-            color="primary"
-            size="small"
-            onPress={() => setSelectedFilter('all')}
-            label={_(msg`All`)}>
+            size="medium"
+            onPress={onRefresh}
+            label={_(msg`Try Again`)}>
             <ButtonText>
-              <Trans>All</Trans>
-            </ButtonText>
-          </Button>
-          <Button
-            variant={selectedFilter === 'real_time' ? 'solid' : 'outline'}
-            color="primary"
-            size="small"
-            onPress={() => setSelectedFilter('real_time')}
-            label={_(msg`Real-time`)}>
-            <ButtonText>
-              <Trans>Real-time</Trans>
-            </ButtonText>
-          </Button>
-          <Button
-            variant={selectedFilter === 'backdated' ? 'solid' : 'outline'}
-            color="primary"
-            size="small"
-            onPress={() => setSelectedFilter('backdated')}
-            label={_(msg`Backdated`)}>
-            <ButtonText>
-              <Trans>Backdated</Trans>
+              <Trans>Try Again</Trans>
             </ButtonText>
           </Button>
         </View>
-      </View>
-
+      )}
+      
       {/* Entries List */}
-      <FlatList
-        data={filteredEntries}
-        renderItem={renderEntry}
-        keyExtractor={(item) => item.uri}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl
-            refreshing={isFetching}
-            onRefresh={onRefresh}
-            tintColor={t.palette.primary_500}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      />
+      {!isLoading && !error && (
+        <FlatList
+          data={filteredEntries}
+          renderItem={renderEntry}
+          keyExtractor={(item) => item.uri}
+          contentContainerStyle={[
+            styles.listContent,
+            filteredEntries.length === 0 && styles.listContentEmpty
+          ]}
+          ListEmptyComponent={renderEmptyState}
+          refreshControl={
+            <RefreshControl
+              refreshing={isFetching && !isLoading}
+              onRefresh={onRefresh}
+              tintColor={t.palette.primary_500}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+        />
+      )}
     </View>
   )
 }
@@ -369,5 +498,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 32,
     paddingVertical: 64,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 64,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 64,
+  },
+  listContentEmpty: {
+    flexGrow: 1,
+  },
+  entryTypeIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  visibilityIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 }) 

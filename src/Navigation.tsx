@@ -105,6 +105,9 @@ import TopicScreen from '#/screens/Topic'
 import {VideoFeed} from '#/screens/VideoFeed'
 import {JournalList} from '#/screens/Journal/List'
 import {JournalComposer} from '#/screens/Journal/Composer'
+import {JournalManager} from '#/screens/Journal/Manager'
+import {JournalEntryDetail} from '#/screens/Journal/EntryDetail'
+import {JournalAnalytics} from '#/screens/Journal/Analytics'
 import {SourcesList} from '#/screens/Sources/List'
 import {SourceDetail} from '#/screens/Sources/Detail'
 import {type Theme, useTheme} from '#/alf'
@@ -702,6 +705,11 @@ function JournalTabNavigator() {
     // Navigate to JournalComposer
     navigationRef.current?.navigate('JournalComposer')
   }
+
+  const handleEntryPress = (entryUri: string) => {
+    // Navigate to entry detail
+    navigationRef.current?.navigate('JournalEntryDetail', {uri: entryUri})
+  }
   
   return (
     <JournalTab.Navigator
@@ -709,12 +717,27 @@ function JournalTabNavigator() {
       initialRouteName="JournalList">
       <JournalTab.Screen
         name="JournalList"
-        component={() => <JournalList onCreateEntry={handleCreateEntry} />}
+        component={() => (
+          <JournalManager 
+            onCreateEntry={handleCreateEntry}
+            onEntryPress={handleEntryPress}
+          />
+        )}
         options={{requireAuth: true}}
       />
       <JournalTab.Screen
         name="JournalComposer"
         getComponent={() => JournalComposer}
+        options={{requireAuth: true}}
+      />
+      <JournalTab.Screen
+        name="JournalEntryDetail"
+        component={({route}) => <JournalEntryDetail entryUri={route.params.uri} />}
+        options={{requireAuth: true}}
+      />
+      <JournalTab.Screen
+        name="JournalAnalytics"
+        getComponent={() => JournalAnalytics}
         options={{requireAuth: true}}
       />
       {commonScreens(JournalTab as unknown as typeof Flat)}
@@ -778,8 +801,11 @@ const FlatNavigator = () => {
       <Flat.Screen
         name="JournalList"
         component={() => (
-          <JournalList
+          <JournalManager
             onCreateEntry={() => navigationRef.current?.navigate('JournalComposer')}
+            onEntryPress={(entryUri) => {
+              navigationRef.current?.navigate('JournalEntryDetail', {uri: entryUri})
+            }}
           />
         )}
         options={{title: title(msg`Journal`), requireAuth: true}}
@@ -788,6 +814,16 @@ const FlatNavigator = () => {
         name="JournalComposer"
         getComponent={() => JournalComposer}
         options={{title: title(msg`New Entry`), requireAuth: true}}
+      />
+      <Flat.Screen
+        name="JournalEntryDetail"
+        component={({route}) => <JournalEntryDetail entryUri={route.params.uri} />}
+        options={{title: title(msg`Journal Entry`), requireAuth: true}}
+      />
+      <Flat.Screen
+        name="JournalAnalytics"
+        getComponent={() => JournalAnalytics}
+        options={{title: title(msg`Journal Analytics`), requireAuth: true}}
       />
       <Flat.Screen
         name="Start"
@@ -855,6 +891,12 @@ const LINKING = {
       }
       if (name === 'JournalComposer') {
         return buildStateObject('JournalTab', 'JournalComposer', params)
+      }
+      if (name === 'JournalEntryDetail') {
+        return buildStateObject('JournalTab', 'JournalEntryDetail', params)
+      }
+      if (name === 'JournalAnalytics') {
+        return buildStateObject('JournalTab', 'JournalAnalytics', params)
       }
       // if the path is something else, like a post, profile, or even settings, we need to initialize the home tab as pre-existing state otherwise the back button will not work
       return buildStateObject('HomeTab', name, params, [
@@ -1011,7 +1053,7 @@ function handleLink(url: string) {
       resetToTab('SearchTab')
     } else if (name === 'Notifications') {
       resetToTab('NotificationsTab')
-    } else if (name === 'JournalList' || name === 'JournalComposer') {
+    } else if (name === 'JournalList' || name === 'JournalComposer' || name === 'JournalEntryDetail' || name === 'JournalAnalytics') {
       resetToTab('JournalTab')
       if (name !== 'JournalList') {
         // @ts-ignore matchPath doesnt give us type-checked output -prf

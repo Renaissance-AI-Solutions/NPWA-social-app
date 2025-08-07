@@ -10,10 +10,17 @@ import {
 
 import {isNative} from '#/platform/detection'
 import {listenNetworkConfirmed, listenNetworkLost} from '#/state/events'
+import {JournalQueryCache, JournalCachePersistence} from '#/state/queries/journal-cache'
 
 // any query keys in this array will be persisted to AsyncStorage
 export const labelersDetailedInfoQueryKeyRoot = 'labelers-detailed-info'
-const STORED_CACHE_QUERY_KEY_ROOTS = [labelersDetailedInfoQueryKeyRoot]
+export const journalEntriesQueryKeyRoot = 'journal'
+export const journalAnalyticsQueryKeyRoot = 'journal:analytics'
+const STORED_CACHE_QUERY_KEY_ROOTS = [
+  labelersDetailedInfoQueryKeyRoot,
+  journalEntriesQueryKeyRoot,
+  journalAnalyticsQueryKeyRoot,
+]
 
 async function checkIsOnline(): Promise<boolean> {
   try {
@@ -105,8 +112,12 @@ focusManager.setEventListener(onFocus => {
   }
 })
 
-const createQueryClient = () =>
-  new QueryClient({
+const createQueryClient = () => {
+  // Create enhanced query cache for journal data with privacy-aware management
+  const queryCache = new JournalQueryCache()
+  
+  return new QueryClient({
+    queryCache,
     defaultOptions: {
       queries: {
         // NOTE
@@ -123,9 +134,35 @@ const createQueryClient = () =>
         // exceptions, and those can be made on a per-query basis. For others, we
         // should give users controls to retry.
         retry: false,
+        // Enhanced stale time management for journal data
+        staleTime: (query) => {
+          const queryKey = query.queryKey.join(':')
+          if (queryKey.includes('journal:analytics')) {
+            return 5 * 60 * 1000 // 5 minutes for analytics
+          }
+          if (queryKey.includes('journal:entries')) {
+            return 2 * 60 * 1000 // 2 minutes for entries
+          }
+          return 0 // Default behavior for other queries
+        },
+      },
+      mutations: {
+        // Add retry logic for critical operations
+        retry: (failureCount, error) => {
+          // Don't retry client errors (4xx)
+          if (error && typeof error === 'object' && 'status' in error) {
+            const status = (error as any).status
+            if (status >= 400 && status < 500) {
+              return false
+            }
+          }
+          // Retry up to 2 times for server errors
+          return failureCount < 2
+        },
       },
     },
   })
+}
 
 const dehydrateOptions: PersistQueryClientProviderProps['persistOptions']['dehydrateOptions'] =
   {

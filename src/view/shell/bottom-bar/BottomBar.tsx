@@ -50,10 +50,14 @@ import {
   Message_Stroke2_Corner0_Rounded as Message,
   Message_Stroke2_Corner0_Rounded_Filled as MessageFilled,
 } from '#/components/icons/Message'
+import {
+  Journal_Stroke2_Corner0_Rounded as Journal,
+  Journal_Filled_Corner0_Rounded as JournalFilled,
+} from '#/components/icons/Journal'
 import {useDemoMode} from '#/storage/hooks/demo-mode'
 import {styles} from './BottomBarStyles'
 
-type TabOptions = 'Home' | 'Search' | 'Messages' | 'Notifications' | 'MyProfile'
+type TabOptions = 'Home' | 'Search' | 'Journal' | 'Messages' | 'Notifications' | 'MyProfile'
 
 export function BottomBar({navigation}: BottomTabBarProps) {
   const {hasSession, currentAccount} = useSession()
@@ -61,7 +65,7 @@ export function BottomBar({navigation}: BottomTabBarProps) {
   const {_} = useLingui()
   const safeAreaInsets = useSafeAreaInsets()
   const {footerHeight} = useShellLayout()
-  const {isAtHome, isAtSearch, isAtNotifications, isAtMyProfile, isAtMessages} =
+  const {isAtHome, isAtSearch, isAtNotifications, isAtMyProfile, isAtMessages, isAtJournal} =
     useNavigationTabState()
   const numUnreadNotifications = useUnreadNotifications()
   const numUnreadMessages = useUnreadMessageCount()
@@ -91,12 +95,15 @@ export function BottomBar({navigation}: BottomTabBarProps) {
   const onPressTab = useCallback(
     (tab: TabOptions) => {
       const state = navigation.getState()
-      const tabState = getTabState(state, tab)
+      // Special handling for Journal tab since it uses different route names
+      const tabName = tab === 'Journal' ? 'JournalList' : tab
+      const tabState = getTabState(state, tabName)
       if (tabState === TabState.InsideAtRoot) {
         emitSoftReset()
       } else if (tabState === TabState.Inside) {
         // find the correct navigator in which to pop-to-top
-        const target = state.routes.find(route => route.name === `${tab}Tab`)
+        const targetTab = tab === 'Journal' ? 'JournalTab' : `${tab}Tab`
+        const target = state.routes.find(route => route.name === targetTab)
           ?.state?.key
         dedupe(() => {
           if (target) {
@@ -109,12 +116,13 @@ export function BottomBar({navigation}: BottomTabBarProps) {
             // fallback: reset navigation
             navigation.reset({
               index: 0,
-              routes: [{name: `${tab}Tab`}],
+              routes: [{name: targetTab}],
             })
           }
         })
       } else {
-        dedupe(() => navigation.navigate(`${tab}Tab`))
+        const targetTab = tab === 'Journal' ? 'JournalTab' : `${tab}Tab`
+        dedupe(() => navigation.navigate(targetTab))
       }
     },
     [navigation, dedupe],
@@ -130,6 +138,9 @@ export function BottomBar({navigation}: BottomTabBarProps) {
   }, [onPressTab])
   const onPressMessages = useCallback(() => {
     onPressTab('Messages')
+  }, [onPressTab])
+  const onPressJournal = useCallback(() => {
+    onPressTab('Journal')
   }, [onPressTab])
 
   const onLongPressProfile = useCallback(() => {
@@ -196,6 +207,27 @@ export function BottomBar({navigation}: BottomTabBarProps) {
               onPress={onPressSearch}
               accessibilityRole="search"
               accessibilityLabel={_(msg`Search`)}
+              accessibilityHint=""
+            />
+            <Btn
+              testID="bottomBarJournalBtn"
+              icon={
+                isAtJournal ? (
+                  <JournalFilled
+                    width={iconWidth}
+                    style={[styles.ctrlIcon, pal.text, styles.feedsIcon]}
+                  />
+                ) : (
+                  <Journal
+                    width={iconWidth}
+                    style={[styles.ctrlIcon, pal.text, styles.feedsIcon]}
+                  />
+                )
+              }
+              onPress={onPressJournal}
+              accessible={true}
+              accessibilityRole="tab"
+              accessibilityLabel={_(msg`Journal`)}
               accessibilityHint=""
             />
             <Btn

@@ -151,11 +151,11 @@ export function SourceDetail() {
   const badgeColors = getBadgeColors(t)
 
   const getRankColor = (rank: Source['rank']) => {
-    return rankColors[rank]
+    return rankColors[rank as keyof typeof rankColors]
   }
 
   const getBadgeColor = (badgeType: Source['badgeType']) => {
-    return badgeType ? badgeColors[badgeType] : t.palette.contrast_400
+    return badgeType ? badgeColors[badgeType as keyof typeof badgeColors] : t.palette.contrast_400
   }
 
   return (
@@ -213,7 +213,7 @@ export function SourceDetail() {
               {backgroundColor: getRankColor(source.rank)},
             ]}>
             <Text style={[a.text_sm, a.font_bold, {color: 'white'}]}>
-              {RANK_LABELS[source.rank]}
+              {RANK_LABELS[source.rank as keyof typeof RANK_LABELS]}
             </Text>
           </View>
           
